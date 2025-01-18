@@ -1,0 +1,25 @@
+# Общие исключения
+*.pyc
+*.pyo
+__pycache__/
+
+# Исключение виртуального окружения
+venv/
+
+# Лог-файлы
+logs/
+*.log
+
+# Конфиденциальные файлы
+.env
+
+# Системные файлы MacOS
+.DS_Store
+
+# Jupyter Notebook checkpoints
+notebooks/.ipynb_checkpoints
+
+# Кэш pip
+*.egg-info/
+*.eggs/
+*.cache/
