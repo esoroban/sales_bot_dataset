@@ -7,7 +7,7 @@ PERSONS_FILE = os.path.join(DATA_DIR, "persons.json")
 OUTPUT_FILE = os.path.join(DATA_DIR, "prompts.json")
 
 # Кількість клієнтів
-NUM_PROMPTS = 2
+NUM_PROMPTS = 10
 
 # Доступні рівні інтересу
 INTEREST_LEVELS = ["слабкий інтерес", "зацікавлений, але сумнівається"]

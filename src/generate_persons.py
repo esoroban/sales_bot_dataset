@@ -6,7 +6,7 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data")
 OUTPUT_FILE = os.path.join(DATA_DIR, "persons.json")
 
 # Количество персон для генерации
-NUM_PERSONS = 2
+NUM_PERSONS = 10
 
 def generate_person():
     """Генерує випадкову особистість."""

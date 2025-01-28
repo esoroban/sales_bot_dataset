@@ -6,13 +6,13 @@ import random
 
 # Пути к файлам
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data")
-PROMPTS_FILE = os.path.join(DATA_DIR, "prompts.json")  # Використовуємо prompts.json
+PROMPTS_FILE = os.path.join(DATA_DIR, "refined_prompts.json")  # Використовуємо prompts.json
 DIALOGUES_FILE = os.path.join(DATA_DIR, "dialogues.json")
 BOT_PROMPT_FILE = os.path.join(DATA_DIR, "bot_prompt.txt")
 
 # Константи
-NUM_DIALOGUES = 2
-NUM_EXCHANGES = 5
+NUM_DIALOGUES = 10
+NUM_EXCHANGES = 10
 
 # Можливі відповіді клієнта при відсутності інтересу
 NO_INTEREST_RESPONSES = [
