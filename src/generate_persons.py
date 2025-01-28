@@ -3,69 +3,71 @@ import os
 import random
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data")
+OUTPUT_FILE = os.path.join(DATA_DIR, "persons.json")
+
+# Количество персон для генерации
+NUM_PERSONS = 2
 
 def generate_person():
-    """Генерирует случайную личность."""
+    """Генерує випадкову особистість."""
     names = ["Анна", "Іван", "Софія", "Максим", "Олексій", "Юлія"]
     hobbies = ["читання", "футбол", "подорожі", "малювання", "випікання"]
     professions = ["вчитель", "підприємець", "лікар", "дизайнер", "механік"]
     characters = ["емпат", "логік", "екстраверт", "інтроверт"]
     values = ["сім'я", "кар'єра", "екологія", "подорожі"]
-    statuses = ["одружений", "розлучений", "самотній"]
-    children_status = ["немає", "одна дитина", "дві дитини", "багатодітна сім'я"]
+    marital_statuses = ["одружений", "розлучений", "самотній"]
+    children_statuses = ["немає", "одна дитина", "дві дитини", "багатодітна сім'я"]
     moods = ["гарний", "поганий", "нейтральний"]
     conversation_styles = ["м'який", "грубий", "прямолінійний", "саркастичний"]
-    temporary_states = ["зайнятий", "немає часу", "доступний зараз"]
+    availability_states = ["зайнятий", "немає часу", "доступний зараз"]
 
-    # Генерация базовых данных
+    # Генерація базових даних
     name = random.choice(names)
     age = random.randint(20, 60)
     person = {
-        "Ім'я": name,
-        "Вік": age,
-        "Стать": random.choice(["чоловіча", "жіноча"]),
-        "Хобі": random.choice(hobbies),
-        "Професія": random.choice(professions),
-        "Характер": random.choice(characters),
-        "Цінності": random.choice(values),
-        "Сімейний_стан": random.choice(statuses),
-        "Наявність_дітей": random.choice(children_status),
-        "Тип життя": random.choice(["міське", "сільське", "приміське"]),
-        "Політичні погляди": random.choice(["консерватор", "ліберал", "аполітичний"]),
-        "Стиль розмови": random.choice(conversation_styles),
-        "Тимчасовий стан": random.choice(temporary_states),
-        "Настрій": random.choice(moods),
-        "Клієнтське заперечення": random.choice([
+        "name": name,
+        "age": age,
+        "gender": random.choice(["чоловіча", "жіноча"]),
+        "hobbies": random.choice(hobbies),
+        "profession": random.choice(professions),
+        "character": random.choice(characters),
+        "values": random.choice(values),
+        "marital_status": random.choice(marital_statuses),
+        "has_children": random.choice(children_statuses),
+        "lifestyle": random.choice(["міське", "сільське", "приміське"]),
+        "political_views": random.choice(["консерватор", "ліберал", "аполітичний"]),
+        "conversation_style": random.choice(conversation_styles),
+        "availability": random.choice(availability_states),
+        "mood": random.choice(moods),
+        "objection": random.choice([
             "Мені це не цікаво.", "Дорого.", "У дитини немає часу на додаткові заняття.",
             "Ми поки не плануємо додаткові заняття для дитини."
         ]),
     }
 
-    # Генерация возраста детей
-    if person["Наявність_дітей"] != "немає":
-        if person["Наявність_дітей"] == "одна дитина":
+    # Генерація віку дітей
+    if person["has_children"] != "немає":
+        if person["has_children"] == "одна дитина":
             num_children = 1
-        elif person["Наявність_дітей"] == "дві дитини":
+        elif person["has_children"] == "дві дитини":
             num_children = 2
         else:
             num_children = random.randint(3, 5)
 
-        # Генерируем возраст детей с условием разницы в возрасте минимум 15 лет
-        person["Вік_дітей"] = [
-            random.randint(3, min(person["Вік"] - 15, 18)) for _ in range(num_children)
+        person["children_ages"] = [
+            random.randint(3, min(person["age"] - 15, 18)) for _ in range(num_children)
         ]
     else:
-        person["Вік_дітей"] = []
+        person["children_ages"] = []
 
     return person
 
-def generate_persons(file_path, count=10):
-    """Генерирует JSON-файл с несколькими личностями."""
+def generate_persons(file_path, count=NUM_PERSONS):
+    """Генерує JSON-файл з кількома особистостями."""
     persons = [generate_person() for _ in range(count)]
     with open(file_path, "w", encoding="utf-8") as file:
         json.dump(persons, file, ensure_ascii=False, indent=4)
     print(f"{count} персон успішно збережено у {file_path}!")
 
 if __name__ == "__main__":
-    output_file = os.path.join(DATA_DIR, "persons.json")
-    generate_persons(output_file, count=10)
+    generate_persons(OUTPUT_FILE, count=NUM_PERSONS)
