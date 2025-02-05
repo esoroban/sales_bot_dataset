@@ -4,16 +4,16 @@ import uuid
 import openai
 import random
 
-# Шляхи до файлів
+from dialogue_functions import stop_dialogue_schema, handle_ai_function_call, stop_dialogue
+
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data")
 PROMPTS_FILE = os.path.join(DATA_DIR, "refined_prompts.json")
 DIALOGUES_FILE = os.path.join(DATA_DIR, "dialogues.json")
 BOT_PROMPT_FILE = os.path.join(DATA_DIR, "bot_prompt.txt")
 
-NUM_DIALOGUES = 2        # Скільки діалогів згенерувати
-NUM_EXCHANGES = 5        # Скільки обмінів бот-клієнт максимально
+NUM_DIALOGUES = 10
+NUM_EXCHANGES = 10
 
-# Відповіді клієнта при відсутності інтересу
 NO_INTEREST_RESPONSES = [
     "Мені це не потрібно.",
     "Не цікаво.",
@@ -24,51 +24,48 @@ NO_INTEREST_RESPONSES = [
 
 from dotenv import load_dotenv
 load_dotenv()
-
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def load_file(file_path):
-    """Читає вміст текстового файлу (для bot_prompt)."""
     if not os.path.exists(file_path):
         print(f"❌ Файл {file_path} не знайдено!")
         return ""
-    with open(file_path, "r", encoding="utf-8") as file:
-        return file.read().strip()
+    with open(file_path, "r", encoding="utf-8") as f:
+        return f.read().strip()
 
 def load_prompts(file_path):
-    """Завантажує список промптів (клієнтських) із JSON."""
     if not os.path.exists(file_path):
         print(f"❌ Файл {file_path} не знайдено!")
         return []
-    with open(file_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
+    with open(file_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
     if not data:
-        print("❌ Файл із промптами порожній!")
+        print("❌ Файл промптів порожній!")
     return data
 
 def generate_bot_response(bot_context):
     """
-    Генерує відповідь БОТА (assistant) на основі bot_context.
-    bot_context — список повідомлень: system (bot_prompt) + черга 'assistant' / 'user'.
+    Генерує відповідь БОТА (assistant) з function calling.
+    Використовує gpt-4o, але припускаємо, що у вас є адаптована версія
+    з підтримкою function calling (за вашими словами).
     """
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4o",
             messages=bot_context,
             max_tokens=300,
-            temperature=0.7
+            temperature=0.7,
+            functions=[stop_dialogue_schema],
+            function_call="auto"  # Дозволяємо GPT вирішувати
         )
-        return response['choices'][0]['message']['content'].strip()
+        return response
     except Exception as e:
-        print(f"❌ Помилка при генерації відповіді БОТА: {e}")
-        return ""
+        print(f"❌ Помилка генерації відповіді бота: {e}")
+        return None
 
 def generate_client_response(client_context):
     """
-    Генерує відповідь КЛІЄНТА (assistant) на основі client_context.
-    client_context — список повідомлень: system (мінімальна інструкція для клієнта) + user/assistant.
-    У user: повідомлення від бота.
-    У assistant: повідомлення клієнта.
+    Генерує відповідь КЛІЄНТА (assistant) без function calling.
     """
     try:
         response = openai.ChatCompletion.create(
@@ -77,141 +74,163 @@ def generate_client_response(client_context):
             max_tokens=300,
             temperature=0.7
         )
-        return response['choices'][0]['message']['content'].strip()
+        return response
     except Exception as e:
-        print(f"❌ Помилка при генерації відповіді КЛІЄНТА: {e}")
-        return ""
+        print(f"❌ Помилка генерації відповіді клієнта: {e}")
+        return None
+
+def extract_bot_message_or_stop(response):
+    """
+    Аналізуємо респонс від бота.
+    Якщо викликана stop_dialogue -> handle_ai_function_call(choice) повертає True,
+    тоді (None, True). Інакше (bot_text, False).
+    """
+    if not response or "choices" not in response:
+        return None, False
+    choice = response["choices"][0]
+
+    # Якщо модель викликала функцію stop_dialogue
+    if handle_ai_function_call(choice):
+        return None, True
+
+    # Інакше повертаємо текст
+    bot_msg = choice["message"].get("content", "")
+    return bot_msg.strip(), False
+
+def extract_client_message(response):
+    """
+    Витягаємо текст із відповіді клієнта (assistant, без function_call).
+    """
+    if not response or "choices" not in response:
+        return None
+    choice = response["choices"][0]
+    return choice["message"].get("content", "").strip()
 
 def create_dialogue(prompt, bot_prompt):
-    """
-    Створює діалог між:
-      - Ботом (bot_context)
-      - Клієнтом (client_context),
-    де prompt["text"] — це початковий опис клієнта з refined_prompts.json,
-    bot_prompt — це системний prompt для бота (текст із файлу).
-    """
-
     conversation_id = str(uuid.uuid4())
     dialogue = {
         "conversation_id": conversation_id,
         "dialogue": []
     }
 
-    # Визначимо, чи немає інтересу (ключова ознака: "немає інтересу" у тексті)
+    # Перевіримо, чи є "немає інтересу"
+    interest_level = "слабкий інтерес"
     if "немає інтересу" in prompt["text"]:
         interest_level = "немає інтересу"
-    else:
-        interest_level = "слабкий інтерес"  # умовно
 
-    # ----------------------
-    # 1. Ініціалізуємо контексти
-
-    # Бот (sales_bot)
     bot_context = [
         {"role": "system", "content": bot_prompt}
     ]
-
-    # Клієнт (Client)
-    # Він отримає мінімальний system-підказ: не дублюй пропозицію, не пропонуй допомогу...
-    client_system_prompt = """
-Ти — звичайний клієнт, який не пропонує допомогу та не дублює пропозиції бота.
-Використовуй інформацію зі свого початкового опису, але відповідай стисло.
+    client_system = f"""
+Ти — звичайний клієнт, не пропонуєш зустрічну допомогу.
+Ось твій опис: {prompt["text"]}
 """
     client_context = [
-        {"role": "system", "content": client_system_prompt},
-        # Додаємо початковий опис із refined_prompts.json у ролі user?
-        # Ні, зазвичай це опис клієнта. Для простоти можна додати як assistant,
-        # або лишити як коментар. Основне: prompt["text"] — це бекґраунд, 
-        # якби внутрішній стан клієнта.
+        {"role": "system", "content": client_system}
     ]
 
-    # ----------------------
-    # 2. Перше повідомлення бота
-    first_bot_message = "Вітаю! Чи цікаво дізнатися про наші курси математики для дітей 5–12 років?"
-    bot_context.append({"role": "assistant", "content": first_bot_message})
+    # Перше повідомлення бота
+    greet = "Вітаю! Чи цікаво дізнатися про наші курси математики для дітей 5–12 років?"
+    bot_context.append({"role": "assistant", "content": greet})
+    dialogue["dialogue"].append({"role": "sales_bot", "message": greet})
+    print(f"[БОТ]: {greet}")
 
-    dialogue["dialogue"].append({"role": "sales_bot", "message": first_bot_message})
-    print(f"[Бот]: {first_bot_message}")
-
-    # ----------------------
-    # 3. Клієнт реагує (перша відповідь)
-    # Для клієнта це вхід, отже client_context + last bot message у ролі "user"
-    client_context.append({"role": "user", "content": first_bot_message})
-
-    # Тут можна "підмішати" prompt["text"] як «пам’ять клієнта», 
-    # наприклад, додати у system або assistant. 
-    # Але найпростіше — вважати, що prompt["text"] це внутрішній опис клієнта, 
-    # який впливає на його стиль. Можна додати в system?
-    # Або додати: client_context.append({"role":"assistant","content": prompt["text"]})
-    # якщо хочемо, щоб ШІ це бачив як «задник».
-    client_context.append({"role": "assistant", "content": prompt["text"]})
-
-    # Тепер генеруємо відповідь
-    client_reply = generate_client_response(client_context)
-    if not client_reply:
-        print("❌ Помилка: клієнт не згенерував відповіді (перший крок).")
+    # Клієнт
+    client_context.append({"role": "user", "content": greet})
+    resp_client = generate_client_response(client_context)
+    if not resp_client:
+        return None
+    client_msg = extract_client_message(resp_client)
+    if not client_msg:
         return None
 
-    # Записуємо в діалог
-    dialogue["dialogue"].append({"role": "client", "message": client_reply})
-    print(f"[Клієнт]: {client_reply}")
+    dialogue["dialogue"].append({"role": "client", "message": client_msg})
+    print(f"[КЛІЄНТ]: {client_msg}")
 
-    # Оновлюємо client_context: 
-    # — клієнт уже відповів, тож це його "assistant" повідомлення
-    client_context.append({"role": "assistant", "content": client_reply})
-    # Бот бачить це як "user"
-    bot_context.append({"role": "user", "content": client_reply})
+    client_context.append({"role": "assistant", "content": client_msg})
+    bot_context.append({"role": "user", "content": client_msg})
 
-    # ----------------------
-    # 4. Подальші обміни
-    for i in range(NUM_EXCHANGES):
-        # Якщо у нас "немає інтересу" — завершуємо швидко
+    refusal_count = 0
+
+    for step in range(NUM_EXCHANGES):
+        # Якщо "немає інтересу" - завершуємо одразу
         if interest_level == "немає інтересу":
-            client_response = random.choice(NO_INTEREST_RESPONSES)
-            dialogue["dialogue"].append({"role": "client", "message": client_response})
-            print(f"[Клієнт]: {client_response} (немає інтересу)\n")
+            denial = random.choice(NO_INTEREST_RESPONSES)
+            dialogue["dialogue"].append({"role": "client", "message": denial})
+            print(f"[КЛІЄНТ]: {denial} (немає інтересу)\n")
+            # Бот каже останню фразу, викликає stop_dialogue
+            final_bot = "Зрозуміло, тоді успіхів! До побачення."
+            dialogue["dialogue"].append({"role": "sales_bot", "message": final_bot})
+            print(f"[БОТ]: {final_bot}\n")
+            stop_dialogue("немає інтересу - завершення")
             break
 
-        # Відповідь бота
-        bot_ans = generate_bot_response(bot_context)
-        if not bot_ans:
-            print("❌ Помилка: бот не згенерував відповідь!")
+        # 1. Бот
+        resp_bot = generate_bot_response(bot_context)
+        if not resp_bot:
+            break
+        bot_msg, stop_called = extract_bot_message_or_stop(resp_bot)
+        if stop_called:
+            # функція stop_dialogue викликана
+            break
+        if not bot_msg:
             break
 
-        # Записуємо в діалог
-        dialogue["dialogue"].append({"role": "sales_bot", "message": bot_ans})
-        print(f"[Бот]: {bot_ans}")
+        dialogue["dialogue"].append({"role": "sales_bot", "message": bot_msg})
+        print(f"[БОТ]: {bot_msg}")
 
-        # Додаємо в bot_context
-        bot_context.append({"role": "assistant", "content": bot_ans})
+        bot_context.append({"role": "assistant", "content": bot_msg})
+        client_context.append({"role": "user", "content": bot_msg})
 
-        # Тепер клієнт
-        client_context.append({"role": "user", "content": bot_ans})
-        client_ans = generate_client_response(client_context)
-        if not client_ans:
-            print("❌ Помилка: клієнт не згенерував відповідь!")
+        # 2. Клієнт
+        resp_client = generate_client_response(client_context)
+        if not resp_client:
+            break
+        client_reply = extract_client_message(resp_client)
+        if not client_reply:
             break
 
-        dialogue["dialogue"].append({"role": "client", "message": client_ans})
-        print(f"[Клієнт]: {client_ans}\n")
+        # Перевірка на відмову
+        low = client_reply.lower()
+        refusal_keywords = ["не цікаво", "не потрібно", "відмовляюся", "не маю часу",
+                            "не планую", "не зацікавлена", "не підходить", "ні, дякую"]
+        if any(kw in low for kw in refusal_keywords):
+            refusal_count += 1
 
-        # оновимо контексти
-        client_context.append({"role": "assistant", "content": client_ans})
-        bot_context.append({"role": "user", "content": client_ans})
+        dialogue["dialogue"].append({"role": "client", "message": client_reply})
+        print(f"[КЛІЄНТ]: {client_reply}\n")
 
-    # Перевірка на мінімальну кількість
+        client_context.append({"role": "assistant", "content": client_reply})
+        bot_context.append({"role": "user", "content": client_reply})
+
+        # Якщо 2 відмови - бот каже останнє слово -> виклик stop_dialogue
+        if refusal_count >= 2:
+            final_bot = "Зрозуміло, дякую за ваш час! Успіхів і всього найкращого!"
+            dialogue["dialogue"].append({"role": "sales_bot", "message": final_bot})
+            print(f"[БОТ]: {final_bot}\n")
+
+            # Ініціюємо виклик
+            # Імітуємо function_call stop_dialogue
+            handle_ai_function_call({
+                "message": {
+                    "function_call": {
+                        "name": "stop_dialogue",
+                        "arguments": '{"reason":"друга відмова"}'
+                    }
+                }
+            })
+            break
+
     if len(dialogue["dialogue"]) < 2:
-        print("❌ Помилка: Діалог замалий.")
+        print("❌ Надто короткий діалог.")
         return None
 
     return dialogue
 
 def save_dialogues(dialogues, file_path):
-    """Зберігає діалоги у JSON-файл."""
     if not dialogues:
         print("❌ Немає діалогів для збереження.")
         return
-
     try:
         if os.path.exists(file_path):
             os.remove(file_path)
@@ -226,17 +245,16 @@ def main():
     bot_prompt = load_file(BOT_PROMPT_FILE)
 
     if not prompts or not bot_prompt:
-        print("❌ Немає даних для створення діалогів!")
+        print("❌ Немає даних!")
         return
 
     dialogues = []
     for i, prompt in enumerate(prompts[:NUM_DIALOGUES]):
-        print(f"\n🛠 Генерується діалог {i+1} для клієнта {prompt['id']}...\n")
-        dialogue = create_dialogue(prompt, bot_prompt)
-        if dialogue:
-            dialogues.append(dialogue)
+        print(f"\n🛠 Генерується діалог {i+1} для '{prompt['id']}'...\n")
+        d = create_dialogue(prompt, bot_prompt)
+        if d:
+            dialogues.append(d)
 
-    print(f"\n🔍 Отримано {len(dialogues)} діалог(и).")
     save_dialogues(dialogues, DIALOGUES_FILE)
 
 if __name__ == "__main__":

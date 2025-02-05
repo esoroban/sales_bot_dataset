@@ -6,7 +6,7 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data")
 PERSONS_FILE = os.path.join(DATA_DIR, "persons.json")
 OUTPUT_FILE = os.path.join(DATA_DIR, "prompts.json")
 
-NUM_PROMPTS = 2
+NUM_PROMPTS = 10
 
 INTEREST_LEVELS_POSITIVE = ["низький інтерес", "помірний інтерес", "високий інтерес"]
 INTEREST_LEVELS_NEGATIVE = ["немає інтересу", "мінімальний інтерес"]
