@@ -9,7 +9,7 @@ OUTPUT_FILE = os.path.join(DATA_DIR, "persons.json")
 NUM_PERSONS = 10
 
 def generate_person():
-    """Генерує випадкову особистість із розширеним списком."""
+    """Генерує випадкову особистість із розширеним списком і визначає рівень інтересу (0..9)."""
     names = [
         "Анна", "Іван", "Софія", "Максим", "Олексій", "Юлія",
         "Марія", "Олена", "Тетяна", "Олег", "Тарас", "Наталя",
@@ -32,19 +32,9 @@ def generate_person():
     availability_states = ["зайнятий", "немає часу", "доступний зараз", "працюю"]
     political_views_options = ["консерватор", "ліберал", "аполітичний", "поміркований"]
 
-    objections = [
-        "Мені це не цікаво.",
-        "Дорого.",
-        "У дитини немає часу на додаткові заняття.",
-        "Ми поки не плануємо додаткові заняття для дитини.",
-        "Поки що не на часі.",
-        "Можливо, але зараз не готові.",
-        "Я ще не вирішив(ла), чи це нам підходить.",
-        "Діти вже мають достатньо гуртків."
-    ]
-
     name = random.choice(names)
     age = random.randint(20, 60)
+
     person = {
         "name": name,
         "age": age,
@@ -60,9 +50,11 @@ def generate_person():
         "conversation_style": random.choice(conversation_styles),
         "availability": random.choice(availability_states),
         "mood": random.choice(moods),
-        "objection": random.choice(objections),
+        # поле objection видалено
+        "interest_level": 0  # Поставимо тимчасово 0, потім визначимо нижче
     }
 
+    # Генеруємо дітей
     if person["has_children"] != "немає":
         if person["has_children"] == "одна дитина":
             num_children = 1
@@ -74,11 +66,33 @@ def generate_person():
         max_child_age = min(age - 15, 18)
         if max_child_age < 3:
             max_child_age = 3
+
         person["children_ages"] = [
             random.randint(3, max_child_age) for _ in range(num_children)
         ]
     else:
         person["children_ages"] = []
+
+    # Логіка визначення interest_level
+    # 0: немає дітей -> interest_level = 0
+    # якщо діти <5 років або >12 років -> interest_level у [1..4]
+    # якщо є принаймні одна дитина 5..12 -> [2..9]
+    
+    has_children_any = (person["has_children"] != "немає")
+    if not has_children_any:
+        # немає дітей => 0
+        person["interest_level"] = 0
+    else:
+        # подивимось, які діти
+        child_ages = person["children_ages"]
+        # Перевіряємо, чи є хоч одна дитина 5..12
+        any_in_5_12 = any(5 <= age_c <= 12 for age_c in child_ages)
+        if any_in_5_12:
+            # interest_level у діапазоні [2..9]
+            person["interest_level"] = random.randint(2, 9)
+        else:
+            # якщо всі діти <5 або >12 => [1..4]
+            person["interest_level"] = random.randint(1, 4)
 
     return person
 
