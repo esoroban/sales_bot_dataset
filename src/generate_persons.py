@@ -1,15 +1,73 @@
-import json
 import os
+import json
 import random
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data")
 OUTPUT_FILE = os.path.join(DATA_DIR, "persons.json")
 
-# Кількість персон
+# Кількість персон для генерації
 NUM_PERSONS = 10
 
+# Фіксований розподіл імовірностей для рівня інтересу (0..9)
+INTEREST_WEIGHTS = [
+    0.30,  # 0 = не цікаво зовсім, грубий тон, поганий настрій
+    0.15,  # 1
+    0.12,  # 2
+    0.10,  # 3
+    0.08,  # 4
+    0.07,  # 5
+    0.06,  # 6
+    0.05,  # 7
+    0.04,  # 8
+    0.03   # 9 = дуже цікаво, м'який тон, гарний настрій
+]
+
+# Розподіл для рівня зайнятості (0..9) - незалежний параметр
+AVAILABILITY_WEIGHTS = [
+    0.25,  # 0 = категорично зайнятий
+    0.15,  # 1
+    0.13,  # 2
+    0.12,  # 3
+    0.10,  # 4
+    0.08,  # 5
+    0.07,  # 6
+    0.06,  # 7
+    0.04,  # 8
+    0.03   # 9 = вільний, можу говорити
+]
+
+# Словесне представлення рівнів
+INTEREST_DESCRIPTIONS = [
+    "Не цікаво зовсім", "Майже не цікаво", "Слабкий інтерес", "Низький інтерес", 
+    "Помірний інтерес", "Дещо цікаво", "Зацікавлений", "Досить цікавить", 
+    "Дуже цікаво", "Максимально зацікавлений"
+]
+
+TONE_DESCRIPTIONS = [
+    "Грубий і неприємний", "Різкий", "Холодний", "Нейтральний", 
+    "Стримано-доброзичливий", "Помірно теплий", "Привітний", "Дружній", 
+    "М'який і уважний", "Максимально ввічливий та доброзичливий"
+]
+
+MOOD_DESCRIPTIONS = [
+    "Дуже поганий настрій", "Роздратований", "Незадоволений", "Скептичний",
+    "Нейтральний", "Помірно позитивний", "Гарний настрій", "Оптимістичний",
+    "Радісний", "Енергійний і дуже доброзичливий"
+]
+
+AVAILABILITY_DESCRIPTIONS = [
+    "Категорично зайнятий", "Дуже зайнятий", "Мало часу", "Помірно зайнятий",
+    "Може виділити трохи часу", "Відносно вільний", "Може говорити, але ненадовго",
+    "Досить вільний", "Майже вільний", "Повністю доступний"
+]
+
+def pick_level(weights):
+    """Повертає випадкове значення від 0 до 9 за заданими ймовірностями."""
+    levels = list(range(10))  # 0..9
+    return random.choices(levels, weights=weights, k=1)[0]
+
 def generate_person():
-    """Генерує випадкову особистість із розширеним списком і визначає рівень інтересу (0..9)."""
+    """Генерує випадкову особистість із рівнем інтересу, зайнятості та тону розмови."""
     names = [
         "Анна", "Іван", "Софія", "Максим", "Олексій", "Юлія",
         "Марія", "Олена", "Тетяна", "Олег", "Тарас", "Наталя",
@@ -27,13 +85,14 @@ def generate_person():
     values = ["сім'я", "кар'єра", "екологія", "подорожі", "здоров'я"]
     marital_statuses = ["одружений", "розлучений", "самотній"]
     children_statuses = ["немає", "одна дитина", "дві дитини", "багатодітна сім'я"]
-    moods = ["гарний", "поганий", "нейтральний"]
-    conversation_styles = ["м'який", "грубий", "прямолінійний", "саркастичний", "доброзичливий"]
-    availability_states = ["зайнятий", "немає часу", "доступний зараз", "працюю"]
     political_views_options = ["консерватор", "ліберал", "аполітичний", "поміркований"]
 
     name = random.choice(names)
     age = random.randint(20, 60)
+
+    # Генеруємо рівень інтересу, тону, настрою
+    interest_level = pick_level(INTEREST_WEIGHTS)
+    availability_level = pick_level(AVAILABILITY_WEIGHTS)
 
     person = {
         "name": name,
@@ -47,14 +106,15 @@ def generate_person():
         "has_children": random.choice(children_statuses),
         "lifestyle": random.choice(["міське", "сільське", "приміське"]),
         "political_views": random.choice(political_views_options),
-        "conversation_style": random.choice(conversation_styles),
-        "availability": random.choice(availability_states),
-        "mood": random.choice(moods),
-        # поле objection видалено
-        "interest_level": 0  # Поставимо тимчасово 0, потім визначимо нижче
+
+        # Лише словесні рівні
+        "interest": INTEREST_DESCRIPTIONS[interest_level],
+        "tone": TONE_DESCRIPTIONS[interest_level],
+        "mood": MOOD_DESCRIPTIONS[interest_level],
+        "availability": AVAILABILITY_DESCRIPTIONS[availability_level]
     }
 
-    # Генеруємо дітей
+    # Генеруємо дітей (якщо є)
     if person["has_children"] != "немає":
         if person["has_children"] == "одна дитина":
             num_children = 1
@@ -72,27 +132,6 @@ def generate_person():
         ]
     else:
         person["children_ages"] = []
-
-    # Логіка визначення interest_level
-    # 0: немає дітей -> interest_level = 0
-    # якщо діти <5 років або >12 років -> interest_level у [1..4]
-    # якщо є принаймні одна дитина 5..12 -> [2..9]
-    
-    has_children_any = (person["has_children"] != "немає")
-    if not has_children_any:
-        # немає дітей => 0
-        person["interest_level"] = 0
-    else:
-        # подивимось, які діти
-        child_ages = person["children_ages"]
-        # Перевіряємо, чи є хоч одна дитина 5..12
-        any_in_5_12 = any(5 <= age_c <= 12 for age_c in child_ages)
-        if any_in_5_12:
-            # interest_level у діапазоні [2..9]
-            person["interest_level"] = random.randint(2, 9)
-        else:
-            # якщо всі діти <5 або >12 => [1..4]
-            person["interest_level"] = random.randint(1, 4)
 
     return person
 

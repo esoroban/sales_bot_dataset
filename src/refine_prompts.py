@@ -2,6 +2,9 @@ import os
 import json
 import openai
 
+# Константа: Улучшать ли промпт
+IMPROVE_PROMPT = False  # True - улучшать, False - записывать 1 к 1
+
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data")
 INPUT_FILE = os.path.join(DATA_DIR, "prompts.json")
 OUTPUT_FILE = os.path.join(DATA_DIR, "refined_prompts.json")
@@ -33,6 +36,9 @@ def refine_prompt(prompt):
     - Обмежується до 8 речень.
     """
     
+    if not IMPROVE_PROMPT:
+        return prompt["text"]
+
     system_prompt = """
 Ти — сценарист і коректор українською.
 Отримуєш монолог від першої особи про людину (вік, професія, кількість дітей тощо).
