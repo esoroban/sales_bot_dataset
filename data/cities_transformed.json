@@ -1,0 +1,62 @@
+{
+  "Kyiv": {
+    "id": 1,
+    "country": "Ukraine",
+    "city": [
+      "Киев",
+      "Київ",
+      "Києв",
+      "Кийев"
+    ],
+    "population": "2952301",
+    "probability": 0.406983
+  },
+  "Kharkiv": {
+    "id": 2,
+    "country": "Ukraine",
+    "city": [
+      "Харьков",
+      "Харків",
+      "Харьків",
+      "Харков"
+    ],
+    "population": "1421125",
+    "probability": 0.195906
+  },
+  "Odesa": {
+    "id": 3,
+    "country": "Ukraine",
+    "city": [
+      "Одесса",
+      "Одеса",
+      "Одєса",
+      "Одессса"
+    ],
+    "population": "1010537",
+    "probability": 0.139305
+  },
+  "Dnipro": {
+    "id": 4,
+    "country": "Ukraine",
+    "city": [
+      "Днепр",
+      "Дніпро",
+      "Днєпр",
+      "Днипро"
+    ],
+    "population": "968502",
+    "probability": 0.133511
+  },
+  "Donetsk": {
+    "id": 5,
+    "country": "Ukraine",
+    "city": [
+      "Донецк",
+      "Донецьк",
+      "Донєцк",
+      "Донецкк"
+    ],
+    "population": "901645",
+    "probability": 0.124294
+  }
+}
