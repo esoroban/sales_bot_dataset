@@ -14,17 +14,17 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # Импортируем схемы, функции и генераторы JSON
 from dialogue_functions import (
     stop_dialogue_schema,
-    price_info_schema,
+    get_price_schema,
     sign_for_promo_schema,
     handle_ai_function_call,
     stop_dialogue,
-    generate_price_info_json,
+    generate_get_price_json,
     generate_stop_dialogue_json,
     generate_sign_for_promo_json
 )
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data")
-PROMPTS_FILE = os.path.join(DATA_DIR, "refined_prompts.json")
+PROMPTS_FILE = os.path.join(DATA_DIR, "prompts.json")
 DIALOGUES_FILE = os.path.join(DATA_DIR, "dialogues.json")
 BOT_PROMPT_FILE = os.path.join(DATA_DIR, "bot_prompt.txt")
 
@@ -49,7 +49,6 @@ REFUSAL_KEYWORDS = [
     "не планую", "не зацікавлена", "не підходить", "ні, дякую"
 ]
 
-
 def is_goodbye(text: str) -> bool:
     txt_lower = text.lower()
     for pattern in GOODBYE_KEYWORDS:
@@ -57,20 +56,16 @@ def is_goodbye(text: str) -> bool:
             return True
     return False
 
-
 def is_price_inquiry(text: str) -> bool:
     return "кільки коштує" in text.lower()
-
 
 def is_refusal(text: str) -> bool:
     low = text.lower()
     return any(kw in low for kw in REFUSAL_KEYWORDS)
 
-
 def check_success(text: str) -> bool:
     text = text.lower()
     return any(kw in text for kw in SUCCESS_KEYWORDS)
-
 
 def load_file(file_path):
     if not os.path.exists(file_path):
@@ -78,7 +73,6 @@ def load_file(file_path):
         return ""
     with open(file_path, "r", encoding="utf-8") as f:
         return f.read().strip()
-
 
 def load_prompts(file_path):
     if not os.path.exists(file_path):
@@ -89,7 +83,6 @@ def load_prompts(file_path):
     if not data:
         print("❌ Файл промптів порожній!")
     return data
-
 
 def generate_bot_response(bot_context, retry_count=0):
     """
@@ -102,7 +95,7 @@ def generate_bot_response(bot_context, retry_count=0):
             messages=bot_context,
             max_tokens=300,
             temperature=0.7,
-            functions=[stop_dialogue_schema, price_info_schema, sign_for_promo_schema],
+            functions=[stop_dialogue_schema, get_price_schema, sign_for_promo_schema],
             function_call="auto"
         )
         return response
@@ -111,7 +104,6 @@ def generate_bot_response(bot_context, retry_count=0):
             return generate_bot_response(bot_context, retry_count=retry_count+1)
         print(f"❌ Ошибка генерации ответа бота: {e}")
         return None
-
 
 def generate_client_response(client_context, retry_count=0):
     """
@@ -132,13 +124,12 @@ def generate_client_response(client_context, retry_count=0):
         print(f"❌ Ошибка генерации ответа клиента: {e}")
         return None
 
-
 def extract_bot_message_or_stop(response):
     """
     Повертає (bot_msg, stop_called).
     Якщо GPT викликала якусь function_call -> підміняємо bot_msg на текст із JSON.
     Якщо stop_dialogue -> stop_called = True (діалог завершується).
-    Якщо price_info чи sign_for_promo -> stop_called = False.
+    Якщо get_price чи sign_for_promo -> stop_called = False.
     Якщо не було function_call -> bot_msg = звичайна відповідь бота, stop_called = False.
     """
     if not response or "choices" not in response:
@@ -147,7 +138,7 @@ def extract_bot_message_or_stop(response):
     choice = response["choices"][0]
     msg = choice["message"]
 
-    # Если GPT вернула function_call
+    # Проверяем, вызвала ли GPT функцию
     if "function_call" in msg:
         func_call = msg["function_call"]
         name = func_call["name"]
@@ -158,8 +149,10 @@ def extract_bot_message_or_stop(response):
         stop_called = handle_ai_function_call(choice)
 
         # Формируем текст, чтобы показать JSON-вызов в диалоге
-        if name == "price_info":
-            bot_msg = f"Ось код виклику функції:\n```json\n{generate_price_info_json()}\n```"
+        if name == "get_price":
+            city = args.get("city", "Dnipro")
+            online = args.get("online", False)
+            bot_msg = f"Ось код виклику функції:\n```json\n{generate_get_price_json(city, online)}\n```"
             return bot_msg, stop_called
 
         elif name == "stop_dialogue":
@@ -174,13 +167,11 @@ def extract_bot_message_or_stop(response):
             bot_msg = f"Ось код виклику функції:\n```json\n{generate_sign_for_promo_json(city, child_name, phone)}\n```"
             return bot_msg, stop_called
 
-        # Если функция не распознана
         return "", stop_called
 
     # Если это обычный текст
     bot_msg = msg.get("content", "")
     return bot_msg.strip(), False
-
 
 def extract_client_message(response):
     """
@@ -190,7 +181,6 @@ def extract_client_message(response):
         return None
     choice = response["choices"][0]
     return choice["message"].get("content", "").strip()
-
 
 def create_dialogue(prompt, bot_prompt):
     conversation_id = str(uuid.uuid4())
@@ -219,11 +209,12 @@ def create_dialogue(prompt, bot_prompt):
 
     # Проверка на запрос цены
     if is_price_inquiry(client_msg):
+        # Пример ручного вызова get_price
         handle_ai_function_call({
             "message": {
                 "function_call": {
-                    "name": "price_info",
-                    "arguments": "{}"
+                    "name": "get_price",
+                    "arguments": '{"city":"Dnipro","online":false}'
                 }
             }
         })
@@ -239,11 +230,21 @@ def create_dialogue(prompt, bot_prompt):
         dialogue_ended = True
         return dialogue, success
 
-    # Проверка на успех (запись)
+    # Проверка на успех
     if check_success(client_msg):
+        # Клиент сразу согласился
         success = True
         final_bot = "Чудово! Записую вас. Дякую за довіру, до зустрічі!"
         dialogue["dialogue"].append({"role": "sales_bot", "message": final_bot})
+        # Вызов sign_for_promo
+        handle_ai_function_call({
+            "message": {
+                "function_call": {
+                    "name": "sign_for_promo",
+                    "arguments": '{"city":"Dnipro","child_name":"Нонейм","phone":"12345678"}'
+                }
+            }
+        })
         stop_dialogue("успіх з першої ж репліки")
         dialogue_ended = True
         return dialogue, success
@@ -265,13 +266,10 @@ def create_dialogue(prompt, bot_prompt):
         if bot_msg is None:
             break
 
-        # Если функция stop_dialogue вернула stop_called=True, но bot_msg может содержать JSON
-        # Если price_info или sign_for_promo -> stop_called=False
         if bot_msg.strip() != "":
             dialogue["dialogue"].append({"role": "sales_bot", "message": bot_msg})
 
         if stop_called:
-            # Диалог завершён
             dialogue_ended = True
             break
 
@@ -296,8 +294,8 @@ def create_dialogue(prompt, bot_prompt):
             handle_ai_function_call({
                 "message": {
                     "function_call": {
-                        "name": "price_info",
-                        "arguments": "{}"
+                        "name": "get_price",
+                        "arguments": '{"city":"Dnipro","online":false}'
                     }
                 }
             })
@@ -314,9 +312,17 @@ def create_dialogue(prompt, bot_prompt):
 
         if check_success(client_reply):
             success = True
-            # Дополнительно можно вызывать sign_for_promo() если нужно
             final_bot = "Чудово, тоді оформимо запис! Дякую за вибір нашого курсу. До зустрічі!"
             dialogue["dialogue"].append({"role": "sales_bot", "message": final_bot})
+            # Вызов sign_for_promo
+            handle_ai_function_call({
+                "message": {
+                    "function_call": {
+                        "name": "sign_for_promo",
+                        "arguments": '{"city":"Dnipro","child_name":"Нонейм","phone":"12345678"}'
+                    }
+                }
+            })
             stop_dialogue("успіх")
             dialogue_ended = True
             break
@@ -324,7 +330,6 @@ def create_dialogue(prompt, bot_prompt):
         if is_refusal(client_reply):
             refusal_count += 1
             if refusal_count >= 2:
-                # Друга відмова -> прощання + stop_dialogue
                 final_bot = "Зрозуміло, дякую за ваш час! Якщо зміните думку, ми завжди на зв’язку. Успіхів!"
                 dialogue["dialogue"].append({"role": "sales_bot", "message": final_bot})
                 handle_ai_function_call({
@@ -340,7 +345,6 @@ def create_dialogue(prompt, bot_prompt):
 
     return dialogue, success
 
-
 def save_dialogues(dialogues, file_path):
     if not dialogues:
         print("❌ Немає діалогів для збереження.")
@@ -353,7 +357,6 @@ def save_dialogues(dialogues, file_path):
         print(f"\n✅ Діалоги збережено у {file_path}.")
     except Exception as e:
         print(f"❌ Помилка при збереженні файлу: {e}")
-
 
 def main():
     prompts = load_prompts(PROMPTS_FILE)
@@ -378,7 +381,6 @@ def main():
 
     print(f"\nЗагальна кількість діалогів: {len(dialogues)}")
     print(f"Успішних діалогів (запис на курс): {success_count}")
-
 
 if __name__ == "__main__":
     main()

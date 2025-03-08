@@ -1,13 +1,10 @@
+# dialogue_functions.py
+
 import json
 
-_dialogue_stopped = False  # Глобальний (чи модульний) прапорець, щоб уникнути дублюваних викликів
+_dialogue_stopped = False
 
 def stop_dialogue(reason: str):
-    """
-    Локальна Python-функція, яку GPT викликає, коли вирішує,
-    що діалог треба завершити (наприклад, після 2-ї відмови).
-    Якщо вже викликалась, вдруге не виводить дублюючих повідомлень.
-    """
     global _dialogue_stopped
     if _dialogue_stopped:
         return
@@ -16,40 +13,42 @@ def stop_dialogue(reason: str):
 
 stop_dialogue_schema = {
     "name": "stop_dialogue",
-    "description": "Завершує поточний діалог. Пояснює, чому діалог зупиняється.",
+    "description": "Завершує поточний діалог...",
     "parameters": {
         "type": "object",
         "properties": {
             "reason": {
                 "type": "string",
-                "description": "Причина завершення (напр. 'друга відмова' або 'немає інтересу')"
+                "description": "Причина..."
             }
         },
         "required": ["reason"]
     }
 }
 
-def price_info():
-    """
-    Функція, яку GPT викликає для повернення вартості курсу.
-    (Вся логіка лише тут, без дублювань у тексті бота.)
-    """
-    print("💰 Ціна за курс: 2000 грн на місяць.")
+def get_price(city="Dnipro", online=False):
+    print(f"Викликаємо розрахунок ціни для {city} (online={online}).")
 
-price_info_schema = {
-    "name": "price_info",
-    "description": "Повертає вартість занять: 2000 грн на місяць",
+get_price_schema = {
+    "name": "get_price",
+    "description": "Повертає вартість занять з урахуванням міста і формату (online чи офлайн).",
     "parameters": {
         "type": "object",
-        "properties": {},
-        "required": []
+        "properties": {
+            "city": {
+                "type": "string",
+                "description": "Місто (англійською)"
+            },
+            "online": {
+                "type": "boolean",
+                "description": "Чи онлайн формат"
+            }
+        },
+        "required": ["city", "online"]
     }
 }
 
 def sign_for_promo(city="Dnipro", child_name="Нонейм", phone="12345678"):
-    """
-    Функція, яку GPT викликає для запису на пробний урок.
-    """
     print(f"✍ Записуємо на промо: {city}, {child_name}, {phone}")
 
 sign_for_promo_schema = {
@@ -58,38 +57,26 @@ sign_for_promo_schema = {
     "parameters": {
         "type": "object",
         "properties": {
-            "city": {
-                "type": "string",
-                "description": "Місто"
-            },
-            "child_name": {
-                "type": "string",
-                "description": "Ім'я дитини"
-            },
-            "phone": {
-                "type": "string",
-                "description": "Телефон"
-            }
+            "city": {"type": "string", "description": "Місто"},
+            "child_name": {"type": "string", "description": "Ім'я дитини"},
+            "phone": {"type": "string", "description": "Телефон"}
         },
         "required": ["city", "child_name", "phone"]
     }
 }
 
-def generate_price_info_json():
-    """
-    Повертає JSON, який показує виклик функції price_info().
-    """
+def generate_get_price_json(city="Dnipro", online=False):
     return json.dumps({
         "function_call": {
-            "name": "price_info",
-            "arguments": {}
+            "name": "get_price",
+            "arguments": {
+                "city": city,
+                "online": online
+            }
         }
     }, ensure_ascii=False)
 
 def generate_stop_dialogue_json(reason="друга відмова"):
-    """
-    Повертає JSON, який показує виклик функції stop_dialogue(reason).
-    """
     return json.dumps({
         "function_call": {
             "name": "stop_dialogue",
@@ -100,9 +87,6 @@ def generate_stop_dialogue_json(reason="друга відмова"):
     }, ensure_ascii=False)
 
 def generate_sign_for_promo_json(city="Dnipro", child_name="Нонейм", phone="12345678"):
-    """
-    Повертає JSON, який показує виклик функції sign_for_promo().
-    """
     return json.dumps({
         "function_call": {
             "name": "sign_for_promo",
@@ -115,12 +99,6 @@ def generate_sign_for_promo_json(city="Dnipro", child_name="Нонейм", phone
     }, ensure_ascii=False)
 
 def handle_ai_function_call(choice):
-    """
-    Перевіряє, чи GPT викликала stop_dialogue(reason), price_info() або sign_for_promo().
-    Виконує відповідну функцію та повертає:
-      - True, якщо це був stop_dialogue (діалог треба завершити),
-      - False, якщо це був price_info чи sign_for_promo (діалог триває).
-    """
     if "message" not in choice:
         return False
     msg = choice["message"]
@@ -134,8 +112,10 @@ def handle_ai_function_call(choice):
             reason = args.get("reason", "")
             stop_dialogue(reason)
             return True
-        elif name == "price_info":
-            price_info()
+        elif name == "get_price":
+            city = args.get("city", "Dnipro")
+            online = args.get("online", False)
+            get_price(city, online)
             return False
         elif name == "sign_for_promo":
             city = args.get("city", "Dnipro")
