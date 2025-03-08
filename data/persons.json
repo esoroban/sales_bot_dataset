@@ -1,212 +1,214 @@
 [
     {
+        "name": "Оксана",
+        "age": 35,
+        "gender": "чоловіча",
+        "hobbies": "подорожі",
+        "profession": "перекладач",
+        "character": "інтроверт",
+        "values": "екологія",
+        "marital_status": "розлучений",
+        "political_views": "аполітичний",
+        "interest": 6,
+        "tone": 6,
+        "mood": 1,
+        "phone": "0960135185",
+        "city": "Донецьк",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Оля",
+                "age": 6
+            },
+            {
+                "name": "Катруся",
+                "age": 9
+            }
+        ]
+    },
+    {
+        "name": "Тарас",
+        "age": 40,
+        "gender": "чоловіча",
+        "hobbies": "футбол",
+        "profession": "дизайнер",
+        "character": "емпат",
+        "values": "подорожі",
+        "marital_status": "одружений",
+        "political_views": "поміркований",
+        "interest": 2,
+        "tone": 2,
+        "mood": 8,
+        "phone": "0922756224",
+        "city": "Базальтове",
+        "country": "Ukraine",
+        "children": []
+    },
+    {
         "name": "Наталя",
-        "age": 27,
+        "age": 42,
+        "gender": "жіноча",
+        "hobbies": "подорожі",
+        "profession": "фотограф",
+        "character": "логік",
+        "values": "екологія",
+        "marital_status": "розлучений",
+        "political_views": "аполітичний",
+        "interest": 1,
+        "tone": 1,
+        "mood": 3,
+        "phone": "0688842840",
+        "city": "Кропивницький",
+        "country": "Ukraine",
+        "children": []
+    },
+    {
+        "name": "Петро",
+        "age": 32,
         "gender": "жіноча",
         "hobbies": "читання",
         "profession": "підприємець",
         "character": "емпат",
-        "values": "сім'я",
-        "marital_status": "самотній",
-        "has_children": "одна дитина",
-        "lifestyle": "приміське",
+        "values": "подорожі",
+        "marital_status": "одружений",
         "political_views": "ліберал",
-        "interest": "Дещо цікаво",
-        "tone": "Помірно теплий",
-        "mood": "Помірно позитивний",
-        "availability": "Категорично зайнятий",
-        "children_ages": [
-            8
+        "interest": 3,
+        "tone": 3,
+        "mood": 5,
+        "phone": "0948720843",
+        "city": "Лутск",
+        "country": "Ukraine",
+        "children": []
+    },
+    {
+        "name": "Катерина",
+        "age": 38,
+        "gender": "чоловіча",
+        "hobbies": "футбол",
+        "profession": "підприємець",
+        "character": "екстраверт",
+        "values": "подорожі",
+        "marital_status": "розлучений",
+        "political_views": "поміркований",
+        "interest": 9,
+        "tone": 9,
+        "mood": 5,
+        "phone": "0674456444",
+        "city": "Луганск",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Андрійко",
+                "age": 14
+            },
+            {
+                "name": "Оля",
+                "age": 16
+            }
         ]
     },
     {
-        "name": "Володимир",
-        "age": 58,
+        "name": "Катерина",
+        "age": 48,
         "gender": "жіноча",
-        "hobbies": "футбол",
-        "profession": "підприємець",
-        "character": "інтроверт",
-        "values": "екологія",
+        "hobbies": "читання",
+        "profession": "перекладач",
+        "character": "емпат",
+        "values": "кар'єра",
+        "marital_status": "одружений",
+        "political_views": "ліберал",
+        "interest": 3,
+        "tone": 3,
+        "mood": 3,
+        "phone": "0669542761",
+        "city": "Тернополь",
+        "country": "Ukraine",
+        "children": []
+    },
+    {
+        "name": "Тарас",
+        "age": 33,
+        "gender": "жіноча",
+        "hobbies": "малювання",
+        "profession": "дизайнер",
+        "character": "логік",
+        "values": "подорожі",
         "marital_status": "розлучений",
-        "has_children": "дві дитини",
-        "lifestyle": "сільське",
-        "political_views": "поміркований",
-        "interest": "Дещо цікаво",
-        "tone": "Помірно теплий",
-        "mood": "Помірно позитивний",
-        "availability": "Може виділити трохи часу",
-        "children_ages": [
-            16,
-            18
+        "political_views": "ліберал",
+        "interest": 6,
+        "tone": 6,
+        "mood": 9,
+        "phone": "0989161166",
+        "city": "Лукаград",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Оля",
+                "age": 17
+            },
+            {
+                "name": "Сашко",
+                "age": 14
+            }
         ]
     },
     {
         "name": "Іван",
-        "age": 57,
+        "age": 39,
         "gender": "чоловіча",
-        "hobbies": "випікання",
-        "profession": "дизайнер",
+        "hobbies": "подорожі",
+        "profession": "підприємець",
         "character": "емпат",
-        "values": "здоров'я",
-        "marital_status": "одружений",
-        "has_children": "одна дитина",
-        "lifestyle": "міське",
-        "political_views": "поміркований",
-        "interest": "Зацікавлений",
-        "tone": "Привітний",
-        "mood": "Гарний настрій",
-        "availability": "Може виділити трохи часу",
-        "children_ages": [
-            12
-        ]
-    },
-    {
-        "name": "Петро",
-        "age": 28,
-        "gender": "жіноча",
-        "hobbies": "велоспорт",
-        "profession": "вчитель",
-        "character": "логік",
-        "values": "здоров'я",
-        "marital_status": "розлучений",
-        "has_children": "дві дитини",
-        "lifestyle": "сільське",
-        "political_views": "аполітичний",
-        "interest": "Не цікаво зовсім",
-        "tone": "Грубий і неприємний",
-        "mood": "Дуже поганий настрій",
-        "availability": "Повністю доступний",
-        "children_ages": [
-            3,
-            7
+        "values": "екологія",
+        "marital_status": "самотній",
+        "political_views": "ліберал",
+        "interest": 8,
+        "tone": 8,
+        "mood": 2,
+        "phone": "0676258783",
+        "city": "Севиродонецк",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Марічка",
+                "age": 4
+            }
         ]
     },
     {
         "name": "Іван",
         "age": 60,
-        "gender": "чоловіча",
-        "hobbies": "садівництво",
+        "gender": "жіноча",
+        "hobbies": "подорожі",
         "profession": "дизайнер",
-        "character": "логік",
-        "values": "кар'єра",
-        "marital_status": "одружений",
-        "has_children": "одна дитина",
-        "lifestyle": "міське",
-        "political_views": "поміркований",
-        "interest": "Не цікаво зовсім",
-        "tone": "Грубий і неприємний",
-        "mood": "Дуже поганий настрій",
-        "availability": "Категорично зайнятий",
-        "children_ages": [
-            12
-        ]
-    },
-    {
-        "name": "Юлія",
-        "age": 34,
-        "gender": "чоловіча",
-        "hobbies": "випікання",
-        "profession": "вчитель",
-        "character": "логік",
+        "character": "емпат",
         "values": "подорожі",
-        "marital_status": "розлучений",
-        "has_children": "одна дитина",
-        "lifestyle": "міське",
-        "political_views": "ліберал",
-        "interest": "Дуже цікаво",
-        "tone": "М'який і уважний",
-        "mood": "Радісний",
-        "availability": "Досить вільний",
-        "children_ages": [
-            14
-        ]
-    },
-    {
-        "name": "Тарас",
-        "age": 33,
-        "gender": "чоловіча",
-        "hobbies": "йога",
-        "profession": "підприємець",
-        "character": "інтроверт",
-        "values": "здоров'я",
         "marital_status": "одружений",
-        "has_children": "дві дитини",
-        "lifestyle": "міське",
         "political_views": "аполітичний",
-        "interest": "Помірний інтерес",
-        "tone": "Стримано-доброзичливий",
-        "mood": "Нейтральний",
-        "availability": "Досить вільний",
-        "children_ages": [
-            12,
-            15
-        ]
+        "interest": 1,
+        "tone": 1,
+        "mood": 5,
+        "phone": "0996858614",
+        "city": "Харків",
+        "country": "Ukraine",
+        "children": []
     },
     {
-        "name": "Марія",
-        "age": 37,
-        "gender": "чоловіча",
-        "hobbies": "велоспорт",
-        "profession": "інженер",
-        "character": "екстраверт",
-        "values": "здоров'я",
-        "marital_status": "самотній",
-        "has_children": "багатодітна сім'я",
-        "lifestyle": "приміське",
-        "political_views": "консерватор",
-        "interest": "Помірний інтерес",
-        "tone": "Стримано-доброзичливий",
-        "mood": "Нейтральний",
-        "availability": "Помірно зайнятий",
-        "children_ages": [
-            13,
-            3,
-            15
-        ]
-    },
-    {
-        "name": "Олег",
-        "age": 58,
+        "name": "Володимир",
+        "age": 40,
         "gender": "жіноча",
-        "hobbies": "футбол",
-        "profession": "підприємець",
-        "character": "логік",
-        "values": "здоров'я",
-        "marital_status": "одружений",
-        "has_children": "багатодітна сім'я",
-        "lifestyle": "міське",
-        "political_views": "ліберал",
-        "interest": "Максимально зацікавлений",
-        "tone": "Максимально ввічливий та доброзичливий",
-        "mood": "Енергійний і дуже доброзичливий",
-        "availability": "Може виділити трохи часу",
-        "children_ages": [
-            10,
-            13,
-            12,
-            3,
-            9
-        ]
-    },
-    {
-        "name": "Катерина",
-        "age": 42,
-        "gender": "жіноча",
-        "hobbies": "випікання",
-        "profession": "фотограф",
+        "hobbies": "йога",
+        "profession": "механік",
         "character": "екстраверт",
         "values": "кар'єра",
-        "marital_status": "одружений",
-        "has_children": "дві дитини",
-        "lifestyle": "приміське",
-        "political_views": "аполітичний",
-        "interest": "Максимально зацікавлений",
-        "tone": "Максимально ввічливий та доброзичливий",
-        "mood": "Енергійний і дуже доброзичливий",
-        "availability": "Повністю доступний",
-        "children_ages": [
-            16,
-            16
-        ]
+        "marital_status": "розлучений",
+        "political_views": "ліберал",
+        "interest": 4,
+        "tone": 4,
+        "mood": 9,
+        "phone": "0631939193",
+        "city": "Тернопл",
+        "country": "Ukraine",
+        "children": []
     }
 ]
