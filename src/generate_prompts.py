@@ -23,7 +23,6 @@ SHORT_RESPONSES = [
     "Нема часу. Коротше, що ви хочете?"
 ]
 
-# Текстовые описания interest (0..9)
 INTEREST_STR_MAP = {
     0: "Не цікаво зовсім",
     1: "Майже не цікаво",
@@ -37,7 +36,6 @@ INTEREST_STR_MAP = {
     9: "Максимально зацікавлений"
 }
 
-# Текстовые описания тона (0..9)
 TONE_STR_MAP = {
     0: "Грубий і неприємний",
     1: "Різкий",
@@ -51,7 +49,6 @@ TONE_STR_MAP = {
     9: "Максимально ввічливий та доброзичливий"
 }
 
-# Текстовые описания настроения (0..9)
 MOOD_STR_MAP = {
     0: "Дуже поганий настрій",
     1: "Роздратований",
@@ -66,9 +63,6 @@ MOOD_STR_MAP = {
 }
 
 def rewrite_phrases(reasons_map):
-    """
-    Переписываем некоторые фразы, чтобы звучало от первого лица.
-    """
     for reason_key, reason_phrases in reasons_map.items():
         new_phrases = []
         for phrase in reason_phrases:
@@ -78,7 +72,6 @@ def rewrite_phrases(reasons_map):
         reasons_map[reason_key] = new_phrases
 
 def load_json(file_path):
-    """Завантажує дані з JSON-файлу."""
     if not os.path.exists(file_path):
         print(f"❌ Файл {file_path} не знайдено: {file_path}")
         return {}
@@ -89,8 +82,6 @@ def load_json(file_path):
     return data
 
 def generate_prompts():
-    """Генерує ПРОМПТИ (опис клієнта) для використання в ІІ."""
-
     persons = load_json(PERSONS_FILE)
     objections_map = load_json(OBJECTIONS_FILE)
 
@@ -98,13 +89,11 @@ def generate_prompts():
         print("❌ Неможливо створити промпти без даних!")
         return
 
-    # Переписываем нежелательные фразы
     reasons_map = objections_map.get("reasons", {})
     rewrite_phrases(reasons_map)
     objections_map["reasons"] = reasons_map
 
     all_reason_keys = list(reasons_map.keys())
-    # Можно убрать "no_children" из рандома
     if "no_children" in all_reason_keys:
         all_reason_keys.remove("no_children")
 
@@ -120,7 +109,6 @@ def generate_prompts():
         city = person.get("city", "Невідоме місто")
         country = person.get("country", "Невідома країна")
 
-        # Интерес/тон/настрой (числа 0..9), мапим в строки
         interest_num = person.get("interest", 0)
         tone_num = person.get("tone", 0)
         mood_num = person.get("mood", 0)
@@ -136,12 +124,10 @@ def generate_prompts():
                 ch_name = ch.get("name", "???")
                 ch_age = ch.get("age", 0)
                 kids_list.append(f"{ch_name} ({ch_age} років)")
-            # Пример: "У мене 2 діточок: Соломія (9 років), Оля (15 років)."
             children_str = f"У мене {len(children)} діточок: " + ", ".join(kids_list) + "."
         else:
             children_str = "У мене немає дітей."
 
-        # Выбираем случайную причину-возражение
         reason_key = random.choice(all_reason_keys) if all_reason_keys else None
         if reason_key and reason_key in reasons_map:
             chosen_reason_phrases = reasons_map[reason_key]
@@ -149,10 +135,8 @@ def generate_prompts():
         else:
             chosen_reason_text = "Нема конкретної причини."
 
-        # Случайная короткая реакция
         short_response = random.choice(SHORT_RESPONSES)
 
-        # Если интерес >= 5 — добавим строку о том, что можем спросить цену и согласиться
         high_interest_line = ""
         if interest_num >= 5:
             high_interest_line = (
@@ -160,16 +144,14 @@ def generate_prompts():
                 "я можу поцікавитися «Скільки коштує?» і, можливо, погодитися на пробний урок.\n"
             )
 
-        # Если среди детей есть возраст 5..12 и интерес >=5 — доп. строка
         any_kid_in_range = any(5 <= ch.get("age", 0) <= 12 for ch in children)
         sign_up_line = ""
         if any_kid_in_range and interest_num >= 5:
             sign_up_line = (
                 "Якщо ви переконаєте мене у перевагах саме для дитини 5–12 років, "
-                "я можу записатися після уточнения ціни.\n"
+                "я можу записатися після уточнення ціни.\n"
             )
 
-        # Формируем текст промпта
         personality_prompt = (
             "Ти не бот, а реальна людина. Ти говориш від першої особи, коротко й прямо.\n"
             f"Місто: {city}, країна: {country}.\n"
@@ -178,11 +160,11 @@ def generate_prompts():
             f"Твоє хобі: {hobbies}.\n"
             f"Твій характер: {character}.\n"
             f"{children_str}\n"
-            # Интерес/тон/настрой — строковые:
             f"Рівень інтересу: {interest_str}.\n"
             f"Тон: {tone_str}.\n"
             f"Настрій: {mood_str}.\n"
             "Твоя відповідь завжди з одного речення.\n"
+            "Якщо бот надає код виклику функції (наприклад, get_price або запис на урок), ти повинен сприймати це як реальну інформацію (ціну чи підтвердження запису), а не як код.\n"
         )
 
         prompt_text = (
@@ -198,7 +180,6 @@ def generate_prompts():
             "text": prompt_text.strip()
         })
 
-    # Сохраняем результат
     with open(OUTPUT_FILE, "w", encoding="utf-8") as file:
         json.dump(prompts, file, ensure_ascii=False, indent=4)
 
@@ -206,3 +187,6 @@ def generate_prompts():
 
 if __name__ == "__main__":
     generate_prompts()
+
+# Добавлено:
+# "Ти сприймаєш відповіді у форматі виклику функцій як нормальні відповіді. Наприклад, якщо ти бачиш відповідь з викликом функції get_price, ти розумієш, що це ціна, і реагуєш як на отриману інформацію про вартість."
