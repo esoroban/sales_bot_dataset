@@ -3,7 +3,8 @@ import json
 import openai
 import re
 
-IMPROVE_PROMPT = True
+# Константа, управляющая улучшением промптов:
+REFINE_PROMPT = False  # Если False, пропускаем GPT-преобразование (просто возвращаем исходный текст)
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data")
 INPUT_FILE = os.path.join(DATA_DIR, "prompts.json")
@@ -12,6 +13,7 @@ OUTPUT_FILE = os.path.join(DATA_DIR, "refined_prompts.json")
 from dotenv import load_dotenv
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
+
 
 def load_prompts():
     if not os.path.exists(INPUT_FILE):
@@ -23,14 +25,25 @@ def load_prompts():
         print("❌ Файл prompts.json порожній!")
     return data
 
+
 def should_skip_improvement(text: str) -> bool:
+    """
+    Если обнаружен служебный JSON (function_call) или блоки,
+    которые не стоит «улучшать» — пропускаем.
+    """
     if "function_call" in text or re.search(r'\{\s*"?function_call"?\s*:', text):
         return True
     return False
 
+
 def is_ukrainian_text(text: str) -> bool:
+    """
+    Примитивная проверка, содержит ли текст достаточно украинских букв.
+    Если нет — считаем, что нужно переписать на украинском.
+    """
     ukr_chars = re.findall(r'[іїєґІЇЄҐ]', text, flags=re.IGNORECASE)
     return len(ukr_chars) > 0
+
 
 def parse_interest_num(text: str) -> int:
     """
@@ -42,20 +55,17 @@ def parse_interest_num(text: str) -> int:
         return int(match.group(1))
     return 0
 
+
 def refine_prompt_logic(original_text: str) -> str:
     """
-    Вносим дополнительную логику:
-      - Если interest_num >= 3, добавляем строку о желании узнать цену.
-      - Если interest_num >= 7, добавляем строку о желании записаться на промо.
+    Локальная логика:
+      - Вставляем фразы о «Скільки коштує?» при interest_num >= 3
+      - Вставляем фразы о «Запишіть мене» при interest_num >= 7
     """
     interest_num = parse_interest_num(original_text)
 
     lines = original_text.split("\n")
-    new_lines = []
-
-    # Копируем исходные строки
-    for line in lines:
-        new_lines.append(line)
+    new_lines = list(lines)  # копируем исходные строки
 
     # Добавляем строку о цене, если interest >= 3
     if interest_num >= 3:
@@ -71,13 +81,20 @@ def refine_prompt_logic(original_text: str) -> str:
 
     return "\n".join(new_lines)
 
+
 def refine_prompt_with_gpt(text: str) -> str:
-    if not IMPROVE_PROMPT:
+    """
+    Обработка GPT. Если REFINE_PROMPT=False — пропускаем.
+    """
+    # 1) Если REFINE_PROMPT=False, просто возвращаем исходный текст.
+    if not REFINE_PROMPT:
         return text
 
+    # 2) Если текст «не подходит» для улучшения — возвращаем как есть.
     if should_skip_improvement(text):
         return text
 
+    # 3) Иначе пытаемся «улучшить».
     force_ukr = not is_ukrainian_text(text)
 
     system_prompt = """
@@ -110,6 +127,7 @@ def refine_prompt_with_gpt(text: str) -> str:
         print(f"❌ Помилка GPT: {e}")
         return text
 
+
 def refine_prompts():
     prompts = load_prompts()
     if not prompts:
@@ -121,18 +139,20 @@ def refine_prompts():
         original_text = pr.get("text", "")
         print(f"➡ Обробляється {i+1}/{len(prompts)}: {pid}")
 
-        # 1) Локальная логика: вставляем/добавляем строки в зависимости от interest
+        # 1) Применяем локальную логику вставок
         logic_text = refine_prompt_logic(original_text)
 
-        # 2) GPT-улучшение (не превращая в диалог)
+        # 2) Применяем (или пропускаем) GPT-преобразование
         final_text = refine_prompt_with_gpt(logic_text)
 
         refined_prompts.append({"id": pid, "text": final_text})
 
+    # Сохраняем результат
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(refined_prompts, f, ensure_ascii=False, indent=4)
 
     print(f"\n✅ Збережено {len(refined_prompts)} оновлених промптів у {OUTPUT_FILE}!")
+
 
 if __name__ == "__main__":
     refine_prompts()
