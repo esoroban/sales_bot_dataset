@@ -1,5 +1,3 @@
-# generate_dialogues.py
-
 import os
 import json
 import uuid
@@ -11,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Импортируем схемы, функции и генераторы JSON
+# Імпортуємо схеми, функції та генератори JSON
 from dialogue_functions import (
     stop_dialogue_schema,
     get_price_schema,
@@ -57,7 +55,7 @@ def is_goodbye(text: str) -> bool:
     return False
 
 def is_price_inquiry(text: str) -> bool:
-    return "кільки коштує" in text.lower()
+    return "скільки коштує" in text.lower()
 
 def is_refusal(text: str) -> bool:
     low = text.lower()
@@ -85,10 +83,6 @@ def load_prompts(file_path):
     return data
 
 def generate_bot_response(bot_context, retry_count=0):
-    """
-    Генерує відповідь БОТА (assistant) з function calling.
-    Если при запросе произошла ошибка — пробуем один раз повторить.
-    """
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4o",
@@ -102,14 +96,10 @@ def generate_bot_response(bot_context, retry_count=0):
     except Exception as e:
         if retry_count < 1:
             return generate_bot_response(bot_context, retry_count=retry_count+1)
-        print(f"❌ Ошибка генерации ответа бота: {e}")
+        print(f"❌ Помилка генерації відповіді бота: {e}")
         return None
 
 def generate_client_response(client_context, retry_count=0):
-    """
-    Генерує відповідь КЛІЄНТА (assistant) без function calling.
-    Если при запросе произошла ошибка — пробуем один раз повторить.
-    """
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4o",
@@ -121,62 +111,57 @@ def generate_client_response(client_context, retry_count=0):
     except Exception as e:
         if retry_count < 1:
             return generate_client_response(client_context, retry_count=retry_count+1)
-        print(f"❌ Ошибка генерации ответа клиента: {e}")
+        print(f"❌ Помилка генерації відповіді клієнта: {e}")
         return None
 
+# Зберігаємо попередні параметри для get_price
+previous_get_price_params = None
+
 def extract_bot_message_or_stop(response):
-    """
-    Повертає (bot_msg, stop_called).
-    Якщо GPT викликала якусь function_call -> підміняємо bot_msg на текст із JSON.
-    Якщо stop_dialogue -> stop_called = True (діалог завершується).
-    Якщо get_price чи sign_for_promo -> stop_called = False.
-    Якщо не було function_call -> bot_msg = звичайна відповідь бота, stop_called = False.
-    """
+    global previous_get_price_params
     if not response or "choices" not in response:
         return None, False
 
     choice = response["choices"][0]
     msg = choice["message"]
 
-    # Проверяем, вызвала ли GPT функцию
     if "function_call" in msg:
         func_call = msg["function_call"]
         name = func_call["name"]
         args_str = func_call.get("arguments") or "{}"
         args = json.loads(args_str)
 
-        # Реально вызываем Python-функцию
         stop_called = handle_ai_function_call(choice)
 
-        # Формируем текст, чтобы показать JSON-вызов в диалоге
         if name == "get_price":
             city = args.get("city", "Dnipro")
             online = args.get("online", False)
-            bot_msg = f"Ось код виклику функції:\n```json\n{generate_get_price_json(city, online)}\n```"
+            current_params = (city, online)
+            if previous_get_price_params == current_params:
+                bot_msg = "Ціна уточнюється, я повідомлю, коли вона буде відома. А поки спробуєте безкоштовний урок?"
+            else:
+                bot_msg = generate_get_price_json(city, online)
+                previous_get_price_params = current_params
             return bot_msg, stop_called
 
         elif name == "stop_dialogue":
             reason = args.get("reason", "")
-            bot_msg = f"Ось код виклику функції:\n```json\n{generate_stop_dialogue_json(reason)}\n```"
+            bot_msg = "Зрозумів, дякую за ваш час. Якщо зміните думку – ми на зв’язку. Успіхів!"
             return bot_msg, stop_called
 
         elif name == "sign_for_promo":
             city = args.get("city", "Dnipro")
             child_name = args.get("child_name", "Нонейм")
             phone = args.get("phone", "12345678")
-            bot_msg = f"Ось код виклику функції:\n```json\n{generate_sign_for_promo_json(city, child_name, phone)}\n```"
+            bot_msg = generate_sign_for_promo_json(city, child_name, phone)
             return bot_msg, stop_called
 
         return "", stop_called
 
-    # Если это обычный текст
     bot_msg = msg.get("content", "")
     return bot_msg.strip(), False
 
 def extract_client_message(response):
-    """
-    Витягаємо текст із відповіді КЛІЄНТА (assistant).
-    """
     if not response or "choices" not in response:
         return None
     choice = response["choices"][0]
@@ -188,17 +173,16 @@ def create_dialogue(prompt, bot_prompt):
     success = False
     refusal_count = 0
     dialogue_ended = False
+    sign_up_params = {"city": None, "child_name": None, "phone": None}
 
     bot_context = [{"role": "system", "content": bot_prompt}]
     client_system = f"Ти — звичайний клієнт. Ось твій опис: {prompt['text']}"
     client_context = [{"role": "system", "content": client_system}]
 
-    # Перше повідомлення бота
     greet = "Вітаю! Я – Штучний інтелект школи усного рахунку «Соробан». Чи є у вас хвилинка поспілкуватися?"
     bot_context.append({"role": "assistant", "content": greet})
     dialogue["dialogue"].append({"role": "sales_bot", "message": greet})
 
-    # Перша відповідь клієнта
     client_context.append({"role": "user", "content": greet})
     resp_client = generate_client_response(client_context)
     if not resp_client:
@@ -207,22 +191,22 @@ def create_dialogue(prompt, bot_prompt):
     client_msg = extract_client_message(resp_client) or ""
     dialogue["dialogue"].append({"role": "client", "message": client_msg})
 
-    # Проверка на запрос цены
     if is_price_inquiry(client_msg):
-        # Пример ручного вызова get_price
-        handle_ai_function_call({
-            "message": {
-                "function_call": {
-                    "name": "get_price",
-                    "arguments": '{"city":"Dnipro","online":false}'
-                }
-            }
-        })
+        bot_msg = "В якому місті ви проживаєте? І вам зручніше онлайн чи офлайн?"
+        dialogue["dialogue"].append({"role": "sales_bot", "message": bot_msg})
+        bot_context.append({"role": "assistant", "content": bot_msg})
+        client_context.append({"role": "user", "content": bot_msg})
+
+        resp_client = generate_client_response(client_context)
+        if resp_client:
+            client_reply = extract_client_message(resp_client) or ""
+            dialogue["dialogue"].append({"role": "client", "message": client_reply})
+            client_context.append({"role": "assistant", "content": client_reply})
+            bot_context.append({"role": "user", "content": client_reply})
 
     client_context.append({"role": "assistant", "content": client_msg})
     bot_context.append({"role": "user", "content": client_msg})
 
-    # Проверка на прощание
     if is_goodbye(client_msg):
         final_bot = "Дякую, успіхів і до побачення!"
         dialogue["dialogue"].append({"role": "sales_bot", "message": final_bot})
@@ -230,34 +214,76 @@ def create_dialogue(prompt, bot_prompt):
         dialogue_ended = True
         return dialogue, success
 
-    # Проверка на успех
     if check_success(client_msg):
-        # Клиент сразу согласился
         success = True
-        final_bot = "Чудово! Записую вас. Дякую за довіру, до зустрічі!"
-        dialogue["dialogue"].append({"role": "sales_bot", "message": final_bot})
-        # Вызов sign_for_promo
-        handle_ai_function_call({
-            "message": {
-                "function_call": {
-                    "name": "sign_for_promo",
-                    "arguments": '{"city":"Dnipro","child_name":"Нонейм","phone":"12345678"}'
-                }
-            }
-        })
-        stop_dialogue("успіх з першої ж репліки")
-        dialogue_ended = True
-        return dialogue, success
+        bot_msg = "Назвіть, будь ласка, місто, в якому ви живете."
+        dialogue["dialogue"].append({"role": "sales_bot", "message": bot_msg})
+        bot_context.append({"role": "assistant", "content": bot_msg})
+        client_context.append({"role": "user", "content": bot_msg})
+
+        resp_client = generate_client_response(client_context)
+        if resp_client:
+            client_reply = extract_client_message(resp_client) or ""
+            dialogue["dialogue"].append({"role": "client", "message": client_reply})
+            sign_up_params["city"] = client_reply
+            client_context.append({"role": "assistant", "content": client_reply})
+            bot_context.append({"role": "user", "content": client_reply})
+
+            bot_msg = "Як звати вашу дитину?"
+            dialogue["dialogue"].append({"role": "sales_bot", "message": bot_msg})
+            bot_context.append({"role": "assistant", "content": bot_msg})
+            client_context.append({"role": "user", "content": bot_msg})
+
+            resp_client = generate_client_response(client_context)
+            if resp_client:
+                client_reply = extract_client_message(resp_client) or ""
+                dialogue["dialogue"].append({"role": "client", "message": client_reply})
+                sign_up_params["child_name"] = client_reply
+                client_context.append({"role": "assistant", "content": client_reply})
+                bot_context.append({"role": "user", "content": client_reply})
+
+                bot_msg = "На який номер телефону зручно отримати підтвердження?"
+                dialogue["dialogue"].append({"role": "sales_bot", "message": bot_msg})
+                bot_context.append({"role": "assistant", "content": bot_msg})
+                client_context.append({"role": "user", "content": bot_msg})
+
+                resp_client = generate_client_response(client_context)
+                if resp_client:
+                    client_reply = extract_client_message(resp_client) or ""
+                    dialogue["dialogue"].append({"role": "client", "message": client_reply})
+                    sign_up_params["phone"] = client_reply
+                    client_context.append({"role": "assistant", "content": client_reply})
+                    bot_context.append({"role": "user", "content": client_reply})
+
+                    final_bot = generate_sign_for_promo_json(
+                        sign_up_params["city"] or "Dnipro",
+                        sign_up_params["child_name"] or "Нонейм",
+                        sign_up_params["phone"] or "12345678"
+                    )
+                    dialogue["dialogue"].append({"role": "sales_bot", "message": final_bot})
+                    handle_ai_function_call({
+                        "message": {
+                            "function_call": {
+                                "name": "sign_for_promo",
+                                "arguments": json.dumps({
+                                    "city": sign_up_params["city"] or "Dnipro",
+                                    "child_name": sign_up_params["child_name"] or "Нонейм",
+                                    "phone": sign_up_params["phone"] or "12345678"
+                                })
+                            }
+                        }
+                    })
+                    stop_dialogue("успіх з першої ж репліки")
+                    dialogue_ended = True
+                    return dialogue, success
     else:
         if is_refusal(client_msg):
             refusal_count += 1
 
-    # Основний цикл
     for step in range(NUM_EXCHANGES):
         if dialogue_ended:
             break
 
-        # Ответ бота
         resp_bot = generate_bot_response(bot_context)
         if not resp_bot:
             break
@@ -281,7 +307,6 @@ def create_dialogue(prompt, bot_prompt):
         bot_context.append({"role": "assistant", "content": bot_msg})
         client_context.append({"role": "user", "content": bot_msg})
 
-        # Ответ клиента
         resp_client = generate_client_response(client_context)
         if not resp_client:
             break
@@ -289,16 +314,18 @@ def create_dialogue(prompt, bot_prompt):
         client_reply = extract_client_message(resp_client) or ""
         dialogue["dialogue"].append({"role": "client", "message": client_reply})
 
-        # Проверка на запрос цены
         if is_price_inquiry(client_reply):
-            handle_ai_function_call({
-                "message": {
-                    "function_call": {
-                        "name": "get_price",
-                        "arguments": '{"city":"Dnipro","online":false}'
-                    }
-                }
-            })
+            bot_msg = "В якому місті ви проживаєте? І вам зручніше онлайн чи офлайн?"
+            dialogue["dialogue"].append({"role": "sales_bot", "message": bot_msg})
+            bot_context.append({"role": "assistant", "content": bot_msg})
+            client_context.append({"role": "user", "content": bot_msg})
+
+            resp_client = generate_client_response(client_context)
+            if resp_client:
+                client_reply = extract_client_message(resp_client) or ""
+                dialogue["dialogue"].append({"role": "client", "message": client_reply})
+                client_context.append({"role": "assistant", "content": client_reply})
+                bot_context.append({"role": "user", "content": client_reply})
 
         client_context.append({"role": "assistant", "content": client_reply})
         bot_context.append({"role": "user", "content": client_reply})
@@ -312,14 +339,63 @@ def create_dialogue(prompt, bot_prompt):
 
         if check_success(client_reply):
             success = True
-            final_bot = "Чудово, тоді оформимо запис! Дякую за вибір нашого курсу. До зустрічі!"
+            if not sign_up_params["city"]:
+                bot_msg = "Назвіть, будь ласка, місто, в якому ви живете."
+                dialogue["dialogue"].append({"role": "sales_bot", "message": bot_msg})
+                bot_context.append({"role": "assistant", "content": bot_msg})
+                client_context.append({"role": "user", "content": bot_msg})
+
+                resp_client = generate_client_response(client_context)
+                if resp_client:
+                    client_reply = extract_client_message(resp_client) or ""
+                    dialogue["dialogue"].append({"role": "client", "message": client_reply})
+                    sign_up_params["city"] = client_reply
+                    client_context.append({"role": "assistant", "content": client_reply})
+                    bot_context.append({"role": "user", "content": client_reply})
+
+            if not sign_up_params["child_name"]:
+                bot_msg = "Як звати вашу дитину?"
+                dialogue["dialogue"].append({"role": "sales_bot", "message": bot_msg})
+                bot_context.append({"role": "assistant", "content": bot_msg})
+                client_context.append({"role": "user", "content": bot_msg})
+
+                resp_client = generate_client_response(client_context)
+                if resp_client:
+                    client_reply = extract_client_message(resp_client) or ""
+                    dialogue["dialogue"].append({"role": "client", "message": client_reply})
+                    sign_up_params["child_name"] = client_reply
+                    client_context.append({"role": "assistant", "content": client_reply})
+                    bot_context.append({"role": "user", "content": client_reply})
+
+            if not sign_up_params["phone"]:
+                bot_msg = "На який номер телефону зручно отримати підтвердження?"
+                dialogue["dialogue"].append({"role": "sales_bot", "message": bot_msg})
+                bot_context.append({"role": "assistant", "content": bot_msg})
+                client_context.append({"role": "user", "content": bot_msg})
+
+                resp_client = generate_client_response(client_context)
+                if resp_client:
+                    client_reply = extract_client_message(resp_client) or ""
+                    dialogue["dialogue"].append({"role": "client", "message": client_reply})
+                    sign_up_params["phone"] = client_reply
+                    client_context.append({"role": "assistant", "content": client_reply})
+                    bot_context.append({"role": "user", "content": client_reply})
+
+            final_bot = generate_sign_for_promo_json(
+                sign_up_params["city"] or "Dnipro",
+                sign_up_params["child_name"] or "Нонейм",
+                sign_up_params["phone"] or "12345678"
+            )
             dialogue["dialogue"].append({"role": "sales_bot", "message": final_bot})
-            # Вызов sign_for_promo
             handle_ai_function_call({
                 "message": {
                     "function_call": {
                         "name": "sign_for_promo",
-                        "arguments": '{"city":"Dnipro","child_name":"Нонейм","phone":"12345678"}'
+                        "arguments": json.dumps({
+                            "city": sign_up_params["city"] or "Dnipro",
+                            "child_name": sign_up_params["child_name"] or "Нонейм",
+                            "phone": sign_up_params["phone"] or "12345678"
+                        })
                     }
                 }
             })

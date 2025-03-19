@@ -63,14 +63,12 @@ MOOD_STR_MAP = {
 
 def rewrite_phrases(reasons_map):
     for reason_key, reason_phrases in reasons_map.items():
-        new_phrases = []
-        for phrase in reason_phrases:
-            phrase = phrase.replace("У тебе немає дітей", "У мене немає дітей")
-            phrase = phrase.replace("Ти не плануєш дітей", "Я не планую дітей")
-            phrase = phrase.replace("У тебе", "У мене")
-            phrase = phrase.replace("ти не", "я не")
-            new_phrases.append(phrase)
-        reasons_map[reason_key] = new_phrases
+        reasons_map[reason_key] = [
+            phrase.replace("У тебе", "У мене")
+                  .replace("Ти не", "Я не")
+                  .replace("ти не", "я не")
+            for phrase in reason_phrases
+        ]
 
 def load_json(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
@@ -90,69 +88,49 @@ def generate_prompts():
     prompts = []
 
     for person in persons[:NUM_PROMPTS]:
-        name = person.get("name", "Невідомий")
-        age = person.get("age", 0)
-        profession = person.get("profession", "безробітний")
-        hobbies = person.get("hobbies", "не вказані")
-        character = person.get("character", "невизначений")
-        phone = person.get("phone", "0000000000")
-        city = person.get("city", "Невідоме місто")
-        country = person.get("country", "Невідома країна")
-
-        interest_str = INTEREST_STR_MAP[person.get("interest", 0)]
-        tone_str = TONE_STR_MAP[person.get("tone", 0)]
-        mood_str = MOOD_STR_MAP[person.get("mood", 0)]
-
         children = person.get("children", [])
-        if children:
-            kids_list = [f'{ch["name"]} ({ch["age"]} років)' for ch in children]
-            children_str = f"У мене {len(children)} діточок: " + ", ".join(kids_list) + "."
-        else:
-            children_str = "У мене немає дітей."
-
-        reason_key = random.choice(all_reason_keys) if all_reason_keys else None
-        chosen_reason_text = random.choice(reasons_map.get(reason_key, ["Нема конкретної причини."]))
-
-        short_response = random.choice(SHORT_RESPONSES)
+        children_str = (
+            f"У мене {len(children)} діточок: " + ", ".join(
+                f'{ch["name"]} ({ch["age"]} років)' for ch in children
+            ) + "."
+            if children else "У мене немає дітей."
+        )
 
         high_interest_line = ""
         sign_up_line = ""
-
-        any_kid_in_range = any(5 <= ch["age"] <= 12 for ch in children)
         if person.get("interest", 0) >= 5:
             high_interest_line = (
-                "Оскільки в мене досить високий рівень зацікавлення, я можу поцікавитися «Скільки коштує?» і, можливо, погодитися на пробний урок.\n"
+                "Оскільки в мене досить високий інтерес, я можу поцікавитися ціною і погодитися на пробний урок.\n"
             )
-            if any_kid_in_range:
+            if any(5 <= ch["age"] <= 12 for ch in children):
                 sign_up_line = (
-                    "Якщо ви переконаєте мене у перевагах саме для дитини 5–12 років, я можу записатися після уточнення ціни.\n"
+                    "Якщо мене переконають у перевагах саме для дитини 5–12 років, можу записатися після уточнення ціни.\n"
                 )
 
-        personality_prompt = (
-            "Ти не бот, а реальна людина. Говори від першої особи.\n"
-            "Не використовуй другу особу (ти, ваш) у відповідях.\n"
-            f"Місто: {city}, країна: {country}.\n"
-            f"Телефон: {phone}.\n"
-            f"Тебе звати {name}, тобі {age} років, працюєш як {profession}.\n"
-            f"Хобі: {hobbies}.\n"
-            f"Характер: {character}.\n"
-            f"{children_str}\n"
-            f"Рівень інтересу: {interest_str}.\n"
-            f"Тон: {tone_str}.\n"
-            f"Настрій: {mood_str}.\n"
-            "Відповідай завжди одним реченням.\n"
-            "Сприймай JSON-відповіді з викликами функцій (get_price чи запис на урок) як реальну інформацію, а не як код.\n"
-        )
+        chosen_reason_text = random.choice(reasons_map.get(random.choice(all_reason_keys), ["Нема конкретної причини."]))
 
         prompt_text = (
-            personality_prompt
-            + high_interest_line
-            + sign_up_line
-            + f"Початкова типова відповідь: «{short_response}»\n"
-            + f"Я сумніваюся і думаю, що: «{chosen_reason_text}»\n"
+            "Ти не бот, а реальна людина. Говори лише від першої особи.\n"
+            "Не використовуй другу особу (ти, твій, ваш) у відповідях.\n"
+            "Не озвучуй ціни самостійно після викликів get_price(), лише сприймай інформацію від бота.\n"
+            "Сприймай JSON-відповіді (get_price, запис на урок) як інформацію, а не як код.\n"
+            f"Місто: {person['city']}, країна: {person['country']}.\n"
+            f"Телефон: {person['phone']}.\n"
+            f"Мене звати {person['name']}, мені {person['age']} років, працюю {person['profession']}.\n"
+            f"Моє хобі: {person['hobbies']}.\n"
+            f"Характер: {person['character']}.\n"
+            f"{children_str}\n"
+            f"Рівень інтересу: {INTEREST_STR_MAP[person['interest']]}.\n"
+            f"Тон: {TONE_STR_MAP[person['tone']]}.\n"
+            f"Настрій: {MOOD_STR_MAP[person['mood']]}.\n"
+            "Відповідаю завжди одним реченням.\n"
+            f"{high_interest_line}"
+            f"{sign_up_line}"
+            f"Початкова типова відповідь: «{random.choice(SHORT_RESPONSES)}»\n"
+            f"Я сумніваюся і думаю, що: «{chosen_reason_text}»"
         )
 
-        prompts.append({"id": name, "text": prompt_text.strip()})
+        prompts.append({"id": person['name'], "text": prompt_text.strip()})
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as file:
         json.dump(prompts, file, ensure_ascii=False, indent=4)
