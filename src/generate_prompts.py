@@ -1,13 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 import json
 import random
+import sys
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data")
 PERSONS_FILE = os.path.join(DATA_DIR, "persons.json")
 OBJECTIONS_FILE = os.path.join(DATA_DIR, "objections.json")
 OUTPUT_FILE = os.path.join(DATA_DIR, "prompts.json")
 
-NUM_PROMPTS = 10
+DEFAULT_NUM_PROMPTS = 10
 
 SHORT_RESPONSES = [
     "Що саме?",
@@ -75,6 +79,15 @@ def load_json(file_path):
         return json.load(file)
 
 def generate_prompts():
+    if len(sys.argv) > 1:
+        try:
+            num_prompts = int(sys.argv[1])
+        except ValueError:
+            print(f"Невірний аргумент, використовується значення за замовчуванням: {DEFAULT_NUM_PROMPTS}")
+            num_prompts = DEFAULT_NUM_PROMPTS
+    else:
+        num_prompts = DEFAULT_NUM_PROMPTS
+
     persons = load_json(PERSONS_FILE)
     objections_map = load_json(OBJECTIONS_FILE)
 
@@ -87,11 +100,11 @@ def generate_prompts():
 
     prompts = []
 
-    for person in persons[:NUM_PROMPTS]:
+    for person in persons[:num_prompts]:
         children = person.get("children", [])
         children_str = (
             f"У мене {len(children)} діточок: " + ", ".join(
-                f'{ch["name"]} ({ch["age"]} років)' for ch in children
+                f"{ch['name']} ({ch['age']} років)" for ch in children
             ) + "."
             if children else "У мене немає дітей."
         )
@@ -107,7 +120,9 @@ def generate_prompts():
                     "Якщо мене переконають у перевагах саме для дитини 5–12 років, можу записатися після уточнення ціни.\n"
                 )
 
-        chosen_reason_text = random.choice(reasons_map.get(random.choice(all_reason_keys), ["Нема конкретної причини."]))
+        chosen_reason_text = random.choice(
+            reasons_map.get(random.choice(all_reason_keys), ["Нема конкретної причини."])
+        )
 
         prompt_text = (
             "Ти не бот, а реальна людина. Говори лише від першої особи.\n"

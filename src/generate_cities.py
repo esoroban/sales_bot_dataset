@@ -36,7 +36,7 @@ def generate_city_variants(city_name):
     return response["choices"][0]["message"]["content"].strip().split("\n")
 
 # Ограничиваем обработку 50 городами
-cities_data = cities_data[:50]
+cities_data = cities_data[:1000]
 
 # Обрабатываем данные по городам
 cities_output = {}

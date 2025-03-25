@@ -1,37 +1,402 @@
 [
     {
+        "name": "Софія",
+        "age": 23,
+        "gender": "чоловіча",
+        "hobbies": "садівництво",
+        "profession": "лікар",
+        "character": "екстраверт",
+        "values": "екологія",
+        "marital_status": "самотній",
+        "political_views": "ліберал",
+        "interest": 6,
+        "tone": 6,
+        "mood": 7,
+        "phone": "0998267452",
+        "city": "Харьків",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Соломія",
+                "age": 8
+            }
+        ]
+    },
+    {
+        "name": "Петро",
+        "age": 27,
+        "gender": "жіноча",
+        "hobbies": "малювання",
+        "profession": "перекладач",
+        "character": "логік",
+        "values": "сім'я",
+        "marital_status": "одружений",
+        "political_views": "ліберал",
+        "interest": 7,
+        "tone": 7,
+        "mood": 4,
+        "phone": "0933841827",
+        "city": "Бердянськ",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Івась",
+                "age": 6
+            }
+        ]
+    },
+    {
         "name": "Іван",
+        "age": 48,
+        "gender": "чоловіча",
+        "hobbies": "скандинавська ходьба",
+        "profession": "інженер",
+        "character": "екстраверт",
+        "values": "здоров'я",
+        "marital_status": "самотній",
+        "political_views": "консерватор",
+        "interest": 7,
+        "tone": 7,
+        "mood": 9,
+        "phone": "0509153184",
+        "city": "Макевка",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Петрик",
+                "age": 3
+            },
+            {
+                "name": "Оля",
+                "age": 15
+            }
+        ]
+    },
+    {
+        "name": "Наталя",
         "age": 31,
         "gender": "жіноча",
-        "hobbies": "йога",
-        "profession": "підприємець",
-        "character": "емпат",
+        "hobbies": "шахи",
+        "profession": "фотограф",
+        "character": "екстраверт",
+        "values": "сім'я",
+        "marital_status": "розлучений",
+        "political_views": "консерватор",
+        "interest": 8,
+        "tone": 8,
+        "mood": 9,
+        "phone": "0633360134",
+        "city": "Бровари",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Петрик",
+                "age": 13
+            },
+            {
+                "name": "Олег",
+                "age": 14
+            },
+            {
+                "name": "Івась",
+                "age": 10
+            }
+        ]
+    },
+    {
+        "name": "Олег",
+        "age": 53,
+        "gender": "чоловіча",
+        "hobbies": "садівництво",
+        "profession": "журналіст",
+        "character": "екстраверт",
         "values": "сім'я",
         "marital_status": "самотній",
-        "political_views": "поміркований",
-        "interest": 0,
-        "tone": 0,
+        "political_views": "консерватор",
+        "interest": 1,
+        "tone": 1,
         "mood": 7,
-        "phone": "0636072655",
-        "city": "1. Русский: Днепр",
+        "phone": "0931304164",
+        "city": "Кыев",
         "country": "Ukraine",
         "children": []
     },
     {
-        "name": "Оксана",
-        "age": 33,
+        "name": "Тарас",
+        "age": 50,
         "gender": "жіноча",
-        "hobbies": "йога",
-        "profession": "механік",
-        "character": "логік",
-        "values": "здоров'я",
+        "hobbies": "футбол",
+        "profession": "лікар",
+        "character": "інтроверт",
+        "values": "сім'я",
         "marital_status": "одружений",
         "political_views": "поміркований",
+        "interest": 5,
+        "tone": 5,
+        "mood": 1,
+        "phone": "0509534677",
+        "city": "Хмельничкий (на суржике)",
+        "country": "Ukraine",
+        "children": []
+    },
+    {
+        "name": "Юлія",
+        "age": 26,
+        "gender": "чоловіча",
+        "hobbies": "велоспорт",
+        "profession": "менеджер",
+        "character": "екстраверт",
+        "values": "подорожі",
+        "marital_status": "одружений",
+        "political_views": "ліберал",
         "interest": 8,
         "tone": 8,
+        "mood": 2,
+        "phone": "0680322205",
+        "city": "1. Русский: Днепр",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Оля",
+                "age": 10
+            },
+            {
+                "name": "Олег",
+                "age": 3
+            }
+        ]
+    },
+    {
+        "name": "Марія",
+        "age": 21,
+        "gender": "жіноча",
+        "hobbies": "подорожі",
+        "profession": "менеджер",
+        "character": "інтроверт",
+        "values": "кар'єра",
+        "marital_status": "самотній",
+        "political_views": "ліберал",
+        "interest": 9,
+        "tone": 9,
+        "mood": 5,
+        "phone": "0916414569",
+        "city": "Донецк",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Олег",
+                "age": 3
+            },
+            {
+                "name": "Даринка",
+                "age": 6
+            }
+        ]
+    },
+    {
+        "name": "Анна",
+        "age": 49,
+        "gender": "жіноча",
+        "hobbies": "велоспорт",
+        "profession": "вчитель",
+        "character": "екстраверт",
+        "values": "екологія",
+        "marital_status": "самотній",
+        "political_views": "поміркований",
+        "interest": 7,
+        "tone": 7,
+        "mood": 6,
+        "phone": "0913058803",
+        "city": "Львов",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Петрик",
+                "age": 5
+            },
+            {
+                "name": "Андрійко",
+                "age": 11
+            }
+        ]
+    },
+    {
+        "name": "Анна",
+        "age": 23,
+        "gender": "чоловіча",
+        "hobbies": "малювання",
+        "profession": "вчитель",
+        "character": "екстраверт",
+        "values": "сім'я",
+        "marital_status": "одружений",
+        "political_views": "консерватор",
+        "interest": 8,
+        "tone": 8,
+        "mood": 0,
+        "phone": "0685526126",
+        "city": "Донецк",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Соломія",
+                "age": 8
+            },
+            {
+                "name": "Сашко",
+                "age": 8
+            },
+            {
+                "name": "Сашко",
+                "age": 3
+            }
+        ]
+    },
+    {
+        "name": "Анна",
+        "age": 44,
+        "gender": "жіноча",
+        "hobbies": "футбол",
+        "profession": "фотограф",
+        "character": "логік",
+        "values": "сім'я",
+        "marital_status": "самотній",
+        "political_views": "аполітичний",
+        "interest": 6,
+        "tone": 6,
+        "mood": 3,
+        "phone": "0951503479",
+        "city": "Харьків",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Івась",
+                "age": 12
+            }
+        ]
+    },
+    {
+        "name": "Катерина",
+        "age": 45,
+        "gender": "жіноча",
+        "hobbies": "скандинавська ходьба",
+        "profession": "механік",
+        "character": "емпат",
+        "values": "екологія",
+        "marital_status": "розлучений",
+        "political_views": "поміркований",
+        "interest": 9,
+        "tone": 9,
+        "mood": 2,
+        "phone": "0966364887",
+        "city": "Одєса",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Марічка",
+                "age": 3
+            },
+            {
+                "name": "Петрик",
+                "age": 10
+            }
+        ]
+    },
+    {
+        "name": "Володимир",
+        "age": 34,
+        "gender": "чоловіча",
+        "hobbies": "випікання",
+        "profession": "журналіст",
+        "character": "інтроверт",
+        "values": "подорожі",
+        "marital_status": "самотній",
+        "political_views": "аполітичний",
+        "interest": 4,
+        "tone": 4,
+        "mood": 8,
+        "phone": "0670987050",
+        "city": "Житомир",
+        "country": "Ukraine",
+        "children": []
+    },
+    {
+        "name": "Олег",
+        "age": 33,
+        "gender": "чоловіча",
+        "hobbies": "малювання",
+        "profession": "фотограф",
+        "character": "екстраверт",
+        "values": "сім'я",
+        "marital_status": "самотній",
+        "political_views": "консерватор",
+        "interest": 0,
+        "tone": 0,
         "mood": 4,
-        "phone": "0937253668",
-        "city": "Лвьов",
+        "phone": "0922889218",
+        "city": "Хмельницький (на украинском)",
+        "country": "Ukraine",
+        "children": []
+    },
+    {
+        "name": "Володимир",
+        "age": 45,
+        "gender": "чоловіча",
+        "hobbies": "йога",
+        "profession": "лікар",
+        "character": "емпат",
+        "values": "кар'єра",
+        "marital_status": "розлучений",
+        "political_views": "консерватор",
+        "interest": 6,
+        "tone": 6,
+        "mood": 3,
+        "phone": "0922555825",
+        "city": "Кыев",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Оля",
+                "age": 6
+            },
+            {
+                "name": "Петрик",
+                "age": 13
+            }
+        ]
+    },
+    {
+        "name": "Оксана",
+        "age": 39,
+        "gender": "чоловіча",
+        "hobbies": "велоспорт",
+        "profession": "лікар",
+        "character": "інтроверт",
+        "values": "сім'я",
+        "marital_status": "одружений",
+        "political_views": "аполітичний",
+        "interest": 5,
+        "tone": 5,
+        "mood": 6,
+        "phone": "0990730247",
+        "city": "Сєвєродонецьк",
+        "country": "Ukraine",
+        "children": []
+    },
+    {
+        "name": "Петро",
+        "age": 60,
+        "gender": "чоловіча",
+        "hobbies": "футбол",
+        "profession": "перекладач",
+        "character": "екстраверт",
+        "values": "кар'єра",
+        "marital_status": "одружений",
+        "political_views": "ліберал",
+        "interest": 6,
+        "tone": 6,
+        "mood": 9,
+        "phone": "0998061223",
+        "city": "Луганськ",
         "country": "Ukraine",
         "children": [
             {
@@ -41,191 +406,78 @@
         ]
     },
     {
-        "name": "Іван",
-        "age": 46,
+        "name": "Катерина",
+        "age": 36,
         "gender": "чоловіча",
-        "hobbies": "подорожі",
-        "profession": "механік",
-        "character": "логік",
-        "values": "екологія",
-        "marital_status": "самотній",
-        "political_views": "консерватор",
-        "interest": 0,
-        "tone": 0,
-        "mood": 7,
-        "phone": "0670583024",
-        "city": "Київ",
-        "country": "Ukraine",
-        "children": []
-    },
-    {
-        "name": "Марія",
-        "age": 52,
-        "gender": "жіноча",
-        "hobbies": "футбол",
-        "profession": "перекладач",
-        "character": "інтроверт",
-        "values": "подорожі",
-        "marital_status": "самотній",
-        "political_views": "поміркований",
-        "interest": 7,
-        "tone": 7,
-        "mood": 5,
-        "phone": "0683193061",
-        "city": "Кийев",
-        "country": "Ukraine",
-        "children": [
-            {
-                "name": "Івась",
-                "age": 10
-            }
-        ]
-    },
-    {
-        "name": "Володимир",
-        "age": 32,
-        "gender": "чоловіча",
-        "hobbies": "садівництво",
-        "profession": "фотограф",
-        "character": "логік",
-        "values": "кар'єра",
-        "marital_status": "самотній",
-        "political_views": "ліберал",
-        "interest": 5,
-        "tone": 5,
-        "mood": 9,
-        "phone": "0689109107",
-        "city": "3. На суржике: Днєпр",
-        "country": "Ukraine",
-        "children": []
-    },
-    {
-        "name": "Петро",
-        "age": 49,
-        "gender": "жіноча",
-        "hobbies": "велоспорт",
-        "profession": "перекладач",
-        "character": "логік",
-        "values": "сім'я",
-        "marital_status": "самотній",
-        "political_views": "ліберал",
-        "interest": 6,
-        "tone": 6,
-        "mood": 3,
-        "phone": "0971922926",
-        "city": "4. С ошибкой: Днипро",
-        "country": "Ukraine",
-        "children": [
-            {
-                "name": "Андрійко",
-                "age": 13
-            }
-        ]
-    },
-    {
-        "name": "Наталя",
-        "age": 27,
-        "gender": "чоловіча",
-        "hobbies": "малювання",
+        "hobbies": "шахи",
         "profession": "лікар",
-        "character": "екстраверт",
+        "character": "інтроверт",
         "values": "екологія",
         "marital_status": "розлучений",
-        "political_views": "ліберал",
-        "interest": 2,
-        "tone": 2,
-        "mood": 6,
-        "phone": "0676705826",
-        "city": "Луханск",
+        "political_views": "поміркований",
+        "interest": 3,
+        "tone": 3,
+        "mood": 5,
+        "phone": "0952281603",
+        "city": "Адеса",
         "country": "Ukraine",
         "children": []
     },
     {
-        "name": "Катерина",
-        "age": 59,
+        "name": "Софія",
+        "age": 46,
         "gender": "чоловіча",
-        "hobbies": "йога",
-        "profession": "журналіст",
-        "character": "екстраверт",
-        "values": "здоров'я",
-        "marital_status": "одружений",
-        "political_views": "поміркований",
-        "interest": 7,
-        "tone": 7,
-        "mood": 7,
-        "phone": "0507885191",
-        "city": "Житомир",
-        "country": "Ukraine",
-        "children": [
-            {
-                "name": "Даринка",
-                "age": 16
-            },
-            {
-                "name": "Андрійко",
-                "age": 18
-            },
-            {
-                "name": "Сашко",
-                "age": 5
-            }
-        ]
-    },
-    {
-        "name": "Іван",
-        "age": 31,
-        "gender": "чоловіча",
-        "hobbies": "велоспорт",
-        "profession": "механік",
+        "hobbies": "малювання",
+        "profession": "вчитель",
         "character": "емпат",
         "values": "екологія",
-        "marital_status": "самотній",
-        "political_views": "аполітичний",
-        "interest": 6,
-        "tone": 6,
-        "mood": 6,
-        "phone": "0976808183",
-        "city": "Кременьчуг",
-        "country": "Ukraine",
-        "children": [
-            {
-                "name": "Петрик",
-                "age": 6
-            },
-            {
-                "name": "Андрійко",
-                "age": 14
-            },
-            {
-                "name": "Сашко",
-                "age": 4
-            }
-        ]
-    },
-    {
-        "name": "Петро",
-        "age": 47,
-        "gender": "жіноча",
-        "hobbies": "садівництво",
-        "profession": "перекладач",
-        "character": "інтроверт",
-        "values": "подорожі",
         "marital_status": "розлучений",
         "political_views": "поміркований",
         "interest": 8,
         "tone": 8,
         "mood": 6,
-        "phone": "0947232830",
-        "city": "Запоріжжя",
+        "phone": "0944555979",
+        "city": "Кийев",
         "country": "Ukraine",
         "children": [
             {
-                "name": "Катруся",
+                "name": "Соломія",
                 "age": 18
             },
             {
-                "name": "Даринка",
-                "age": 15
+                "name": "Марічка",
+                "age": 4
+            }
+        ]
+    },
+    {
+        "name": "Софія",
+        "age": 23,
+        "gender": "жіноча",
+        "hobbies": "випікання",
+        "profession": "менеджер",
+        "character": "емпат",
+        "values": "подорожі",
+        "marital_status": "одружений",
+        "political_views": "поміркований",
+        "interest": 9,
+        "tone": 9,
+        "mood": 7,
+        "phone": "0999006232",
+        "city": "Лвьов",
+        "country": "Ukraine",
+        "children": [
+            {
+                "name": "Сашко",
+                "age": 6
+            },
+            {
+                "name": "Оля",
+                "age": 5
+            },
+            {
+                "name": "Івась",
+                "age": 5
             }
         ]
     }

@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Імпортуємо схеми, функції та генератори JSON
 from dialogue_functions import (
     stop_dialogue_schema,
     get_price_schema,
@@ -26,7 +25,6 @@ PROMPTS_FILE = os.path.join(DATA_DIR, "prompts.json")
 DIALOGUES_FILE = os.path.join(DATA_DIR, "dialogues.json")
 BOT_PROMPT_FILE = os.path.join(DATA_DIR, "bot_prompt.txt")
 
-NUM_DIALOGUES = 10
 NUM_EXCHANGES = 10
 
 SUCCESS_KEYWORDS = [
@@ -114,7 +112,6 @@ def generate_client_response(client_context, retry_count=0):
         print(f"❌ Помилка генерації відповіді клієнта: {e}")
         return None
 
-# Зберігаємо попередні параметри для get_price
 previous_get_price_params = None
 
 def extract_bot_message_or_stop(response):
@@ -445,7 +442,8 @@ def main():
     dialogues = []
     success_count = 0
 
-    for i, prompt in enumerate(prompts[:NUM_DIALOGUES]):
+    # Генеруємо діалог для кожного промпта, без обмеження кількості
+    for i, prompt in enumerate(prompts):
         print(f"\n🛠 Генерується діалог {i+1} для '{prompt['id']}'...\n")
         d, success = create_dialogue(prompt, bot_prompt)
         if d:

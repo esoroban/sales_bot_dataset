@@ -39,7 +39,7 @@ def should_skip_improvement(text: str) -> bool:
 def is_ukrainian_text(text: str) -> bool:
     """
     Примитивная проверка, содержит ли текст достаточно украинских букв.
-    Если нет — считаем, что нужно переписать на украинском.
+    Если нет — считаем, что нужно переписать на українській.
     """
     ukr_chars = re.findall(r'[іїєґІЇЄҐ]', text, flags=re.IGNORECASE)
     return len(ukr_chars) > 0
