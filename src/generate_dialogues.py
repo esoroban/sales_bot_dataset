@@ -25,7 +25,7 @@ PROMPTS_FILE = os.path.join(DATA_DIR, "prompts.json")
 DIALOGUES_FILE = os.path.join(DATA_DIR, "dialogues.json")
 BOT_PROMPT_FILE = os.path.join(DATA_DIR, "bot_prompt.txt")
 
-NUM_EXCHANGES = 10
+NUM_EXCHANGES = 15
 
 SUCCESS_KEYWORDS = [
     "запишіть", "як записатися", "як можна записатися", "пробний урок",
@@ -44,6 +44,14 @@ REFUSAL_KEYWORDS = [
     "не цікаво", "не потрібно", "відмовляюся", "не маю часу",
     "не планую", "не зацікавлена", "не підходить", "ні, дякую"
 ]
+
+def format_function_call(name, arguments):
+    return json.dumps({
+        "function_call": {
+            "name": name,
+            "arguments": arguments
+        }
+    }, ensure_ascii=False, indent=4)
 
 def is_goodbye(text: str) -> bool:
     txt_lower = text.lower()
@@ -85,7 +93,7 @@ def generate_bot_response(bot_context, retry_count=0):
         response = openai.ChatCompletion.create(
             model="gpt-4o",
             messages=bot_context,
-            max_tokens=300,
+            max_tokens=400,
             temperature=0.7,
             functions=[stop_dialogue_schema, get_price_schema, sign_for_promo_schema],
             function_call="auto"
@@ -136,21 +144,24 @@ def extract_bot_message_or_stop(response):
             current_params = (city, online)
             if previous_get_price_params == current_params:
                 bot_msg = "Ціна уточнюється, я повідомлю, коли вона буде відома. А поки спробуєте безкоштовний урок?"
-            else:
-                bot_msg = generate_get_price_json(city, online)
-                previous_get_price_params = current_params
+                return bot_msg, stop_called
+            previous_get_price_params = current_params
+            arguments = {"city": city, "online": online}
+            bot_msg = format_function_call("get_price", arguments)
             return bot_msg, stop_called
 
         elif name == "stop_dialogue":
             reason = args.get("reason", "")
-            bot_msg = "Зрозумів, дякую за ваш час. Якщо зміните думку – ми на зв’язку. Успіхів!"
+            arguments = {"reason": reason}
+            bot_msg = format_function_call("stop_dialogue", arguments)
             return bot_msg, stop_called
 
         elif name == "sign_for_promo":
             city = args.get("city", "Dnipro")
             child_name = args.get("child_name", "Нонейм")
             phone = args.get("phone", "12345678")
-            bot_msg = generate_sign_for_promo_json(city, child_name, phone)
+            arguments = {"city": city, "child_name": child_name, "phone": phone}
+            bot_msg = format_function_call("sign_for_promo", arguments)
             return bot_msg, stop_called
 
         return "", stop_called
@@ -252,11 +263,12 @@ def create_dialogue(prompt, bot_prompt):
                     client_context.append({"role": "assistant", "content": client_reply})
                     bot_context.append({"role": "user", "content": client_reply})
 
-                    final_bot = generate_sign_for_promo_json(
-                        sign_up_params["city"] or "Dnipro",
-                        sign_up_params["child_name"] or "Нонейм",
-                        sign_up_params["phone"] or "12345678"
-                    )
+                    arguments = {
+                        "city": sign_up_params["city"] or "Dnipro",
+                        "child_name": sign_up_params["child_name"] or "Нонейм",
+                        "phone": sign_up_params["phone"] or "12345678"
+                    }
+                    final_bot = format_function_call("sign_for_promo", arguments)
                     dialogue["dialogue"].append({"role": "sales_bot", "message": final_bot})
                     handle_ai_function_call({
                         "message": {
@@ -378,21 +390,18 @@ def create_dialogue(prompt, bot_prompt):
                     client_context.append({"role": "assistant", "content": client_reply})
                     bot_context.append({"role": "user", "content": client_reply})
 
-            final_bot = generate_sign_for_promo_json(
-                sign_up_params["city"] or "Dnipro",
-                sign_up_params["child_name"] or "Нонейм",
-                sign_up_params["phone"] or "12345678"
-            )
+            arguments = {
+                "city": sign_up_params["city"] or "Dnipro",
+                "child_name": sign_up_params["child_name"] or "Нонейм",
+                "phone": sign_up_params["phone"] or "12345678"
+            }
+            final_bot = format_function_call("sign_for_promo", arguments)
             dialogue["dialogue"].append({"role": "sales_bot", "message": final_bot})
             handle_ai_function_call({
                 "message": {
                     "function_call": {
                         "name": "sign_for_promo",
-                        "arguments": json.dumps({
-                            "city": sign_up_params["city"] or "Dnipro",
-                            "child_name": sign_up_params["child_name"] or "Нонейм",
-                            "phone": sign_up_params["phone"] or "12345678"
-                        })
+                        "arguments": json.dumps(arguments)
                     }
                 }
             })
@@ -442,7 +451,6 @@ def main():
     dialogues = []
     success_count = 0
 
-    # Генеруємо діалог для кожного промпта, без обмеження кількості
     for i, prompt in enumerate(prompts):
         print(f"\n🛠 Генерується діалог {i+1} для '{prompt['id']}'...\n")
         d, success = create_dialogue(prompt, bot_prompt)
